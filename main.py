@@ -7,6 +7,8 @@ import os
 import numpy as np
 import time
 from statistics import statisticsClass
+import threading
+import concurrent.futures
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -192,6 +194,63 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 
 allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 fileALLPOP = open(allPopStats, 'w+')
+
+
+def processRandomPopulation(x):
+    loci = inputFileStatistics.numLoci
+    sampleSize = inputFileStatistics.sampleSize
+    # change the intermediate file name
+    intermediateFilename = "intermediate_" + getName(fileName)+ "_" + str(t)
+
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
+        POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+        intermediateFilename)
+
+    if (DEBUG):
+        print(cmd)
+
+    returned_value = os.system(cmd)
+
+    if returned_value:
+        print("ERROR:main:Refactor did not run")
+        exit()
+
+    refactorFileStatistics = statisticsClass()
+
+    refactorFileStatistics.readData(intermediateFilename)
+    refactorFileStatistics.test_stat1()
+    refactorFileStatistics.test_stat2()
+    refactorFileStatistics.test_stat3()
+    refactorFileStatistics.test_stat5()
+    refactorFileStatistics.test_stat4()
+
+    statistics1[x] = refactorFileStatistics.stat1
+    statistics2[x] = refactorFileStatistics.stat2
+    statistics3[x] = refactorFileStatistics.stat3
+    statistics5[x] = refactorFileStatistics.stat5
+    statistics4[x] = refactorFileStatistics.stat4
+
+    # Making file with stats from all populations
+    textList = []
+    textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
+                str(refactorFileStatistics.stat2),
+                str(refactorFileStatistics.stat3),
+                str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
+
+    # print (textList)
+    fileALLPOP.write('\t'.join(textList) + '\n')
+
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    futures =[executor.submit(processRandomPopulation, i) for i in range(numOneSampTrials)]
+
+    for future in concurrent.futures.as_completed(futures):
+        print(future.result)
+    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+        print(result)
+
+fileALLPOP.close()
+
+"""
 for x in range(numOneSampTrials):
 
     loci = inputFileStatistics.numLoci
@@ -236,6 +295,9 @@ for x in range(numOneSampTrials):
     # print (textList)
     fileALLPOP.write('\t'.join(textList) + '\n')
 fileALLPOP.close()
+"""
+
+
 
 #########################################
 # FINISHING ALL POPULATIONS
