@@ -194,19 +194,14 @@ statistics3 = [0 for x in range(numOneSampTrials)]
 statistics5 = [0 for x in range(numOneSampTrials)]
 statistics4 = [0 for x in range(numOneSampTrials)]
 
-allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-fileALLPOP = open(allPopStats, 'w+')
-
 
 def processRandomPopulation(x):
-
-    thread_id = threading.get_ident()
-    print(f"Thread ID: {thread_id}")
-
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
-    # change the intermediate file name
-    intermediateFilename = str(thread_id) + "intermediate_" + getName(fileName) + "_" + str(t)
+    # change the intermediate file name by thread id
+    thread_id = threading.get_ident()
+    #print(f"Thread ID: {thread_id}")
+    intermediateFilename = str(thread_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
 
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
         POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
@@ -242,32 +237,22 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat2),
                 str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
-    # return json.dumps(textList)
-    text = json.dumps(textList)
-    return text
+    return textList
+
 #print(text, type(text))
 
-
-# for i in range(5):
-#     processRandomPopulation(i)
-
-
-def task(value):
-    return value
-
+allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+fileALLPOP = open(allPopStats, 'w+')
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    with open("results.txt", "w") as result_file:
+    with fileALLPOP as result_file:
         for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-            result_file.write(result + '\n')
-            # print(f'>got {result}')
+            result_file.write('\t'.join(result) + '\n')
 
-print("Done")
 
-"""
 fileALLPOP.close()
 
-
+"""
 for x in range(numOneSampTrials):
 
     loci = inputFileStatistics.numLoci
@@ -313,7 +298,7 @@ for x in range(numOneSampTrials):
     fileALLPOP.write('\t'.join(textList) + '\n')
 fileALLPOP.close()
 
-
+"""
 #########################################
 # FINISHING ALL POPULATIONS
 ########################################
@@ -335,7 +320,6 @@ if (DEBUG):
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
-"""
 
 # Deleting temporary files
 # delete1 = "rm " + inputPopStats
