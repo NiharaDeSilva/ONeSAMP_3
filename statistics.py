@@ -93,6 +93,15 @@ class statisticsClass:
             sys.exit(1)
         self.sampleSize = self.data.shape[0]
 
+    # def get_file_last_line(self, inputfile):
+    #     last_line = None
+    #     with open(inputfile, 'rb') as f:
+    #         for line in f:
+    #             last_line = line
+    #     if last_line is not None:
+    #         return last_line.decode()
+    #     else:
+    #         return None
 
     def filterMonomorphicLoci(self):
         data = self.data

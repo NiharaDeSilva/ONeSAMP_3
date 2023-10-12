@@ -9,6 +9,7 @@ import time
 from statistics import statisticsClass
 import threading
 import concurrent.futures
+import json
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -20,9 +21,11 @@ BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 POPULATION_GENERATOR = "./build/OneSamp"
 FINAL_R_ANALYSIS = "./scripts/rScript.r"
 
+
 def getName(filename):
     (_, filename) = os.path.split(filename)
     return filename
+
 
 #############################################################
 start_time = time.time()
@@ -119,7 +122,6 @@ if (args.o):
 else:
     print("WARNING:main: No filename provided.  Using oneSampIn")
 
-
 if (DEBUG):
     print("Start calculation of statistics for input population")
 
@@ -200,7 +202,7 @@ def processRandomPopulation(x):
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
     # change the intermediate file name
-    intermediateFilename = "intermediate_" + getName(fileName)+ "_" + str(t)
+    intermediateFilename = "intermediate_" + getName(fileName) + "_" + str(t)
 
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
         POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
@@ -236,21 +238,32 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat2),
                 str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
+    # return json.dumps(textList)
+    text = json.dumps(textList)
+    return text
+#print(text, type(text))
 
-    # print (textList)
-    fileALLPOP.write('\t'.join(textList) + '\n')
 
-with concurrent.futures.ThreadPoolExecutor() as executor:
-    futures =[executor.submit(processRandomPopulation, i) for i in range(numOneSampTrials)]
+for i in range(5):
+    processRandomPopulation(i)
 
-    for future in concurrent.futures.as_completed(futures):
-        print(future.result)
-    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-        print(result)
 
-fileALLPOP.close()
+def task(value):
+    return value
+
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with open("results.txt", "w") as result_file:
+        for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+            result_file.write(result + '\n')
+            # print(f'>got {result}')
+
+print("Done")
 
 """
+fileALLPOP.close()
+
+
 for x in range(numOneSampTrials):
 
     loci = inputFileStatistics.numLoci
@@ -295,8 +308,6 @@ for x in range(numOneSampTrials):
     # print (textList)
     fileALLPOP.write('\t'.join(textList) + '\n')
 fileALLPOP.close()
-"""
-
 
 
 #########################################
@@ -319,6 +330,8 @@ if (DEBUG):
     print("Finish linear regression")
 
 print("--- %s seconds ---" % (time.time() - start_time))
+
+"""
 
 # Deleting temporary files
 # delete1 = "rm " + inputPopStats
