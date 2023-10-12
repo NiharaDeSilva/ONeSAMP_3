@@ -199,10 +199,14 @@ fileALLPOP = open(allPopStats, 'w+')
 
 
 def processRandomPopulation(x):
+
+    thread_id = threading.get_ident()
+    print(f"Thread ID: {thread_id}")
+
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
     # change the intermediate file name
-    intermediateFilename = "intermediate_" + getName(fileName) + "_" + str(t)
+    intermediateFilename = str(thread_id) + "intermediate_" + getName(fileName) + "_" + str(t)
 
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
         POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
@@ -244,8 +248,8 @@ def processRandomPopulation(x):
 #print(text, type(text))
 
 
-for i in range(5):
-    processRandomPopulation(i)
+# for i in range(5):
+#     processRandomPopulation(i)
 
 
 def task(value):
