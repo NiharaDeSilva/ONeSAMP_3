@@ -4,12 +4,12 @@ import sys
 import argparse
 
 import os
+import shutil
 import numpy as np
 import time
 from statistics import statisticsClass
 import threading
 import concurrent.futures
-import json
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -17,6 +17,8 @@ DEBUG = 0  ## BOUCHER: Change this to 1 for debuggin mode
 OUTPUTFILENAME = "priors.txt"
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
+directory = "Temp"
+path = os.path.join("./", directory)
 
 POPULATION_GENERATOR = "./build/OneSamp"
 FINAL_R_ANALYSIS = "./scripts/rScript.r"
@@ -160,7 +162,7 @@ inputFileStatistics.test_stat4()
 numLoci = inputFileStatistics.numLoci
 sampleSize = inputFileStatistics.sampleSize
 
-##Creting input file with intial statistics
+##Creating input file with intial statistics
 textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(inputFileStatistics.stat3),
             str(inputFileStatistics.stat4), str(inputFileStatistics.stat5)]
 inputPopStats = "inputPopStats_" + getName(fileName) + "_" + str(t)
@@ -195,17 +197,17 @@ statistics5 = [0 for x in range(numOneSampTrials)]
 statistics4 = [0 for x in range(numOneSampTrials)]
 
 
+# Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
-    # change the intermediate file name by thread id
     thread_id = threading.get_ident()
-    #print(f"Thread ID: {thread_id}")
+    # change the intermediate file name by thread id
     intermediateFilename = str(thread_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
-
+    intermediateFile = os.path.join(path, intermediateFilename)
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
         POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-        intermediateFilename)
+        intermediateFile)
 
     if (DEBUG):
         print(cmd)
@@ -218,7 +220,7 @@ def processRandomPopulation(x):
 
     refactorFileStatistics = statisticsClass()
 
-    refactorFileStatistics.readData(intermediateFilename)
+    refactorFileStatistics.readData(intermediateFile)
     refactorFileStatistics.test_stat1()
     refactorFileStatistics.test_stat2()
     refactorFileStatistics.test_stat3()
@@ -239,66 +241,27 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
-#print(text, type(text))
-
 allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 fileALLPOP = open(allPopStats, 'w+')
 
+try:
+    os.mkdir(path)
+except FileExistsError:
+    pass
+
+# Concurrently process the random populations
 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
     with fileALLPOP as result_file:
         for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
             result_file.write('\t'.join(result) + '\n')
 
-
 fileALLPOP.close()
 
-"""
-for x in range(numOneSampTrials):
+try:
+    shutil.rmtree(path, ignore_errors=True)
+except FileExistsError:
+    pass
 
-    loci = inputFileStatistics.numLoci
-    sampleSize = inputFileStatistics.sampleSize
-    # change the intermediate file name
-    intermediateFilename = "intermediate_" + getName(fileName)+ "_" + str(t)
-
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
-        POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-        intermediateFilename)
-
-    if (DEBUG):
-        print(cmd)
-
-    returned_value = os.system(cmd)
-
-    if returned_value:
-        print("ERROR:main:Refactor did not run")
-        exit()
-
-    refactorFileStatistics = statisticsClass()
-
-    refactorFileStatistics.readData(intermediateFilename)
-    refactorFileStatistics.test_stat1()
-    refactorFileStatistics.test_stat2()
-    refactorFileStatistics.test_stat3()
-    refactorFileStatistics.test_stat5()
-    refactorFileStatistics.test_stat4()
-
-    statistics1[x] = refactorFileStatistics.stat1
-    statistics2[x] = refactorFileStatistics.stat2
-    statistics3[x] = refactorFileStatistics.stat3
-    statistics5[x] = refactorFileStatistics.stat5
-    statistics4[x] = refactorFileStatistics.stat4
-
-    # Making file with stats from all populations
-    textList = []
-    textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
-                str(refactorFileStatistics.stat2),
-                str(refactorFileStatistics.stat3),
-                str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
-    # print (textList)
-    fileALLPOP.write('\t'.join(textList) + '\n')
-fileALLPOP.close()
-
-"""
 #########################################
 # FINISHING ALL POPULATIONS
 ########################################
@@ -327,7 +290,6 @@ print("--- %s seconds ---" % (time.time() - start_time))
 #
 # delete2 = "rm " + allPopStats
 # delete_ALLPOP = os.system(delete2)
-
 
 ##########################
 # END
