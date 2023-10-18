@@ -10,6 +10,8 @@ import time
 from statistics import statisticsClass
 import threading
 import concurrent.futures
+import warnings
+from sklearn.linear_model import LinearRegression
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -270,16 +272,195 @@ except FileExistsError:
 # TODO double check there
 ALL_POP_STATS_FILE = allPopStats
 
-rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
-print(rScriptCMD)
-res = os.system(rScriptCMD)
+print("Below are the mean, median, and 95 credible limits ", end="")
+print("for the posterior distribution of the effective ")
+print("population size from OneSamp\n")
 
-if (res):
-    print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
-    exit()
+#Ignore all warnings
+warnings.filterwarnings("ignore")
 
-if (DEBUG):
-    print("Finish linear regression")
+
+def makepd5(target, x, sumstat, tol, gwt, rejmethod=True):
+    scaled_sumstat = sumstat.copy()
+    for i in range(5):
+        scaled_sumstat[:, i] = (sumstat[:, i] - sumstat[gwt, i].mean()) / np.sqrt(sumstat[gwt, i].var())
+
+    target_s = target.copy()
+    for i in range(5):
+        target_s[i] = (target[i] - sumstat[gwt, i].mean()) / np.sqrt(sumstat[gwt, i].var())
+
+    dist = np.sqrt(np.sum((scaled_sumstat - target_s) ** 2, axis=1))
+    dist[~gwt] = np.floor(np.max(dist[gwt]) + 10)
+
+    abstol = np.quantile(dist, tol)
+    wt1 = dist < abstol
+
+    if rejmethod:
+        l1 = {'x': x[wt1], 'wt': 0}
+    else:
+        regwt = 1 - (dist[wt1] ** 2) / (abstol ** 2)
+        x1 = scaled_sumstat[wt1, 0]
+        x2 = scaled_sumstat[wt1, 1]
+        x3 = scaled_sumstat[wt1, 2]
+        x4 = scaled_sumstat[wt1, 3]
+        x5 = scaled_sumstat[wt1, 4]
+        fit1 = LinearRegression()
+        fit1.fit(np.column_stack((x1, x2, x3, x4, x5)), x[wt1], sample_weight=regwt)
+        predmean = fit1.predict(np.array([target_s]))
+
+        fv = fit1.predict(np.column_stack((x1, x2, x3, x4, x5)))
+
+        l1 = {'x': x[wt1] + predmean - fv, 'vals': x[wt1], 'wt': regwt, 'ss': scaled_sumstat[wt1, :], 'predmean': predmean, 'fv': fv}
+
+    return l1
+
+
+
+def normalize(x,y):
+    mean_y = np.mean(y)
+    var_y = np.var(y)
+    if not np.isfinite(var_y):
+        retval = 0
+    elif var_y == 0:
+        retval = mean_y
+    else:
+        retval = (x - mean_y) / np.sqrt(var_y)
+    return retval
+
+    
+
+# Get the command-line arguments
+# Exclude the first argument, which is the script name
+# args = sys.args[1:]
+
+# if len(args)>=2:
+#     allfilename = args[0]
+#     initialfilename = args[1]
+# else:
+#     print("Usage: python script.py <allfilename> <initialfilename>")
+#     sys.exit(1)
+
+
+# allfilename = ALL_POP_STATS_FILE
+# initialfilename = inputPopStats
+
+
+initialfilename = inputPopStats    # Replace with the actual file path
+numStatistics = 5  # Set the number of statistics
+
+try:
+    with open(initialfilename, 'r') as file:
+        # Read the data from the file
+        data = file.read()
+        data = data.split()  # Split the data into individual values
+
+        # Convert the data to a NumPy array and reshape it
+        import numpy as np
+        m2 = np.array(data, dtype=float)
+        m2 = m2.reshape(-1, numStatistics).T  # Transpose the matrix
+
+        # Print the resulting matrix
+        print(m2)
+except FileNotFoundError:
+    print(f"File '{initialfilename}' not found.")
+
+numSamples = m2.shape[0] - 1
+
+mExpected = m2[0,0]
+ldExpected = m2[0,1]
+lnbExpected = m2[0,2]
+hetxExpected = m2[0,3]
+xhetExpected = m2[0,4]
+
+# print(mExpected)
+# print(ldExpected)
+# print(lnbExpected)
+# print(hetxExpected)
+# print(xhetExpected)
+
+
+targetStatVals = np.array([mExpected, ldExpected, lnbExpected, hetxExpected, xhetExpected])
+# targetStatVals = [mExpected, ldExpected, lnbExpected, hetxExpected, xhetExpected]
+
+
+standardIn = ALL_POP_STATS_FILE
+
+try:
+    with open(allfilename, 'r') as standardIn:
+        # Read the data from the file
+        data = standardIn.read()
+        data = data.split()  # Split the data into individual values
+
+        # Convert the data to a NumPy array and reshape it
+        import numpy as np
+        m1 = np.array(data, dtype=float)
+        m1 = m1.reshape(-1, numStatistics + 1).T  # Transpose the matrix
+
+        # Print the resulting matrix
+        print(m1)
+except FileNotFoundError:
+    print(f"File '{allfilename}' not found.")
+
+
+numSamples = m1.shape[0] - 1
+
+#Extract column and assign to appropriate statistics
+ne = m1[0, :]
+m = m1[1, :]
+ld = m1[2, :]
+lnb = m1[3, :]
+hetx = m1[4, :]
+xhet = m1[5, :]
+
+
+
+# Box Cox transform of Ne data
+lambda_value = -0.2
+
+# Calculate neBoxCox using the provided lambda
+neBoxCox = ((ne ** lambda_value) - 1) / lambda_value
+
+# Combine columns m, ld, lnb, hetx, xhet into a data matrix
+datamatrix = np.columnstack((m,ld,lnb,hetx,xhet))
+
+result1 = makepd5(targetStatVals, neBoxCox, datamatrix, 0.05, np.arange(1, datamatrix.shape[0] + 1), False)
+
+# Inverse Box-Cox transformation
+result1['x'] = ((lambda_value * result1['x']) + 1) ** (1 / lambda_value)
+
+
+# Statistics to compute
+# Inverse Box-Cox transform for mean
+mean = ((lambda_value * result1['predmean']) + 1) ** (1 / lambda_value)
+# Median
+median = np.median(result1['x'])  # Using NumPy's median function
+# Variance
+vari = np.var(result1['x'])  # Using NumPy's var function
+# Minimum
+min_val = np.min(result1['x'])  # Using NumPy's min function
+# Maximum
+max_val = np.max(result1['x'])  # Using NumPy's max function
+
+
+# maybe we should use 0.25 and 0.75?
+quantiles = np.percentile(result1['x'], [2.5, 97.5])
+
+
+# Display the final output
+print("min        max        mean        median      lower95CL   upper95CL\n")
+print("%.2f      %.2f      %.2f      %.2f      %.2f      %.2f\n", min, max, mean, median, quantiles[0], quantiles[1])
+
+
+# rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
+# print(rScriptCMD)
+# res = os.system(rScriptCMD)
+
+# if (res):
+#     print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
+#     exit()
+
+# if (DEBUG):
+#     print("Finish linear regression")
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
