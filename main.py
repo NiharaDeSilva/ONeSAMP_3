@@ -17,7 +17,7 @@ DEBUG = 0  ## BOUCHER: Change this to 1 for debuggin mode
 OUTPUTFILENAME = "priors.txt"
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
-directory = "Temp"
+directory = "temp"
 path = os.path.join("./", directory)
 
 POPULATION_GENERATOR = "./build/OneSamp"
@@ -250,7 +250,7 @@ except FileExistsError:
     pass
 
 # Concurrently process the random populations
-with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
     with fileALLPOP as result_file:
         for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
             result_file.write('\t'.join(result) + '\n')
