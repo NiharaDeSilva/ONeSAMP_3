@@ -13,6 +13,6 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 
 echo "Running plot script on multiple CPU cores"
 
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/DataSet/genePop100Ix100L > /blue/boucher/suhashidesilva/ONeSAMP_3/genePop100Ix100L.out
+python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/exampleData/genePop10Ix30L > /blue/boucher/suhashidesilva/ONeSAMP_3/genePop10Ix30L.out
 
 date
