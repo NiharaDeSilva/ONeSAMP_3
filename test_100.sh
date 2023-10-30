@@ -13,6 +13,6 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 
 echo "Running plot script on a single CPU core"
 
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/exampleData/genePop10Ix30L > /blue/boucher/suhashidesilva/ONeSAMP_3/genePop10Ix30L.out
+python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop200x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/genePop200x320.out
 
 date
