@@ -224,6 +224,9 @@ Ne_*
 ParseIslandData
 test_100.sh
 island_result
+allPopStats_*
+inputPopStats_*
+intermediate_*
 
 
 
