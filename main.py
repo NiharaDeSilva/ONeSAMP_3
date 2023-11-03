@@ -8,7 +8,7 @@ import shutil
 import numpy as np
 import time
 from statistics import statisticsClass
-import threading
+import multiprocessing
 import concurrent.futures
 
 NUMBER_OF_STATISTICS = 5
@@ -168,7 +168,7 @@ textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(
 inputPopStats = "inputPopStats_" + getName(fileName) + "_" + str(t)
 with open(inputPopStats, 'w') as fileINPUT:
     fileINPUT.write('\t'.join(textList[0:]) + '\t')
-fileINPUT.close()
+# fileINPUT.close()
 
 if (DEBUG):
     print("Finish calculation of statistics for input population")
@@ -201,9 +201,10 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 def processRandomPopulation(x):
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
-    thread_id = threading.get_ident()
+    proc = multiprocessing.Process()
+    process_id = proc._identity[1]
     # change the intermediate file name by thread id
-    intermediateFilename = str(thread_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
+    intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
         POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
@@ -250,17 +251,17 @@ except FileExistsError:
     pass
 
 # Concurrently process the random populations
-with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+with concurrent.futures.ProcessPoolExecutor() as executor:
     with fileALLPOP as result_file:
         for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-            result_file.write('\t'.join(result) + '\n')
+            result_file.write('\t'.join(map(str, result)) + '\n')
 
-fileALLPOP.close()
+# fileALLPOP.close()
 
-try:
-    shutil.rmtree(path, ignore_errors=True)
-except FileExistsError:
-    pass
+# try:
+#     shutil.rmtree(path, ignore_errors=True)
+# except FileExistsError:
+#     pass
 
 #########################################
 # FINISHING ALL POPULATIONS
