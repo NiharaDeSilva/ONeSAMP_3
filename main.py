@@ -250,11 +250,31 @@ try:
 except FileExistsError:
     pass
 
+# Worker function that computes statistics and puts the result in a queue
+
+#Result queue
+manager = multiprocessing.Manager()
+result_queue = manager.Queue()
+
 # Concurrently process the random populations
-with concurrent.futures.ProcessPoolExecutor() as executor:
-    with fileALLPOP as result_file:
-        for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-            result_file.write('\t'.join(map(str, result)) + '\n')
+with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+    futures = [executor.map(processRandomPopulation, range(numOneSampTrials))]
+    # As each task completes, put the result in the queue
+    for future in concurrent.futures.as_completed(futures):
+        result_queue.put(future.result())
+
+
+
+
+with fileALLPOP as result_file:
+    while not result_queue.empty():
+        result = result_queue.get()
+        result_file.write('\t'.join((result)) + '\n')
+
+# with open('results.txt', 'w') as f:
+#     while not result_queue.empty():
+#         result = result_queue.get()
+#         f.write(f'{result}\n')
 
 # fileALLPOP.close()
 
