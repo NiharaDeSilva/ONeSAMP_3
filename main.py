@@ -267,200 +267,111 @@ except FileExistsError:
 #########################################
 # FINISHING ALL POPULATIONS
 ########################################
-# STARTING RSCRIPT
+# STARTING LINEAR REGRESSION
 #########################################
 # TODO double check there
-ALL_POP_STATS_FILE = allPopStats
+import numpy as np
+import pandas as pd
+# import seaborn as sns
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from scipy.stats import boxcox
+from scipy.special import inv_boxcox
+from sklearn.model_selection import cross_val_predict
 
-print("Below are the mean, median, and 95 credible limits ", end="")
-print("for the posterior distribution of the effective ")
-print("population size from OneSamp\n")
-
-#Ignore all warnings
-warnings.filterwarnings("ignore")
-
-
-def makepd5(target, x, sumstat, tol, gwt, rejmethod=True):
-    scaled_sumstat = sumstat.copy()
-    for i in range(5):
-        scaled_sumstat[:, i] = (sumstat[:, i] - sumstat[gwt, i].mean()) / np.sqrt(sumstat[gwt, i].var())
-
-    target_s = target.copy()
-    for i in range(5):
-        target_s[i] = (target[i] - sumstat[gwt, i].mean()) / np.sqrt(sumstat[gwt, i].var())
-
-    dist = np.sqrt(np.sum((scaled_sumstat - target_s) ** 2, axis=1))
-    dist[~gwt] = np.floor(np.max(dist[gwt]) + 10)
-
-    abstol = np.quantile(dist, tol)
-    wt1 = dist < abstol
-
-    if rejmethod:
-        l1 = {'x': x[wt1], 'wt': 0}
-    else:
-        regwt = 1 - (dist[wt1] ** 2) / (abstol ** 2)
-        x1 = scaled_sumstat[wt1, 0]
-        x2 = scaled_sumstat[wt1, 1]
-        x3 = scaled_sumstat[wt1, 2]
-        x4 = scaled_sumstat[wt1, 3]
-        x5 = scaled_sumstat[wt1, 4]
-        fit1 = LinearRegression()
-        fit1.fit(np.column_stack((x1, x2, x3, x4, x5)), x[wt1], sample_weight=regwt)
-        predmean = fit1.predict(np.array([target_s]))
-
-        fv = fit1.predict(np.column_stack((x1, x2, x3, x4, x5)))
-
-        l1 = {'x': x[wt1] + predmean - fv, 'vals': x[wt1], 'wt': regwt, 'ss': scaled_sumstat[wt1, :], 'predmean': predmean, 'fv': fv}
-
-    return l1
+import matplotlib.pyplot as plt
+from sklearn.metrics import PredictionErrorDisplay
 
 
-
-def normalize(x,y):
-    mean_y = np.mean(y)
-    var_y = np.var(y)
-    if not np.isfinite(var_y):
-        retval = 0
-    elif var_y == 0:
-        retval = mean_y
-    else:
-        retval = (x - mean_y) / np.sqrt(var_y)
-    return retval
-
-    
-
-# Get the command-line arguments
-# Exclude the first argument, which is the script name
-# args = sys.args[1:]
-
-# if len(args)>=2:
-#     allfilename = args[0]
-#     initialfilename = args[1]
-# else:
-#     print("Usage: python script.py <allfilename> <initialfilename>")
-#     sys.exit(1)
+inputPopStats = pd.read_csv(inputPopStats, sep='\t', header=None)
+inputPopStats = inputPopStats.drop(labels=5, axis=1)
+inputPopStats.columns = ['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']
+allPopStats = pd.read_csv(allPopStats, sep='\t', header=None)
+allPopStats.columns = ['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']
 
 
-# allfilename = ALL_POP_STATS_FILE
-# initialfilename = inputPopStats
+Z = np.array(inputPopStats[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
+X = np.array(allPopStats[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
+y = np.array(allPopStats['Ne'])
 
+#Normalize the data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+Z_scaled = scaler.fit_transform(Z)
 
-initialfilename = inputPopStats    # Replace with the actual file path
-numStatistics = 5  # Set the number of statistics
+#Apply box-cox transformation
+y_transformed, lambda_value = boxcox(y)
 
-try:
-    with open(initialfilename, 'r') as file:
-        # Read the data from the file
-        data = file.read()
-        data = data.split()  # Split the data into individual values
+#Split train and test data for cross validation
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
 
-        # Convert the data to a NumPy array and reshape it
-        import numpy as np
-        m2 = np.array(data, dtype=float)
-        m2 = m2.reshape(-1, numStatistics).T  # Transpose the matrix
+# Fit the linear regression model
+model = LinearRegression()
+# model.fit(X_train, y_train, sample_weight=weights)
+result = model.fit(X_train, y_train)
 
-        # Print the resulting matrix
-        print(m2)
-except FileNotFoundError:
-    print(f"File '{initialfilename}' not found.")
+#Predict for Test values
+y_pred = result.predict(X_test)
 
-numSamples = m2.shape[0] - 1
+# Perform k-fold cross-validation
+# Model evaluation with cross validation
+print("Model Evaluation\n")
+cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
+cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
+print("Cross validation scores : ", cv_scores[0], cv_scores[1], cv_scores[2], cv_scores[3], cv_scores[4])
 
-mExpected = m2[0,0]
-ldExpected = m2[0,1]
-lnbExpected = m2[0,2]
-hetxExpected = m2[0,3]
-xhetExpected = m2[0,4]
+# Get the coefficients for each feature
+coefficients = model.coef_
+coefficients_original_scale = coefficients / lambda_value
 
-# print(mExpected)
-# print(ldExpected)
-# print(lnbExpected)
-# print(hetxExpected)
-# print(xhetExpected)
+# Print the coefficients for each feature
+print("\nCoefficients for each feature:")
+for feature, coef in zip(inputPopStats.columns, coefficients_original_scale):
+    print(f"{feature}: {coef:.4f}")
 
-
-targetStatVals = np.array([mExpected, ldExpected, lnbExpected, hetxExpected, xhetExpected])
-# targetStatVals = [mExpected, ldExpected, lnbExpected, hetxExpected, xhetExpected]
-
-
-standardIn = ALL_POP_STATS_FILE
-
-try:
-    with open(allfilename, 'r') as standardIn:
-        # Read the data from the file
-        data = standardIn.read()
-        data = data.split()  # Split the data into individual values
-
-        # Convert the data to a NumPy array and reshape it
-        import numpy as np
-        m1 = np.array(data, dtype=float)
-        m1 = m1.reshape(-1, numStatistics + 1).T  # Transpose the matrix
-
-        # Print the resulting matrix
-        print(m1)
-except FileNotFoundError:
-    print(f"File '{allfilename}' not found.")
-
-
-numSamples = m1.shape[0] - 1
-
-#Extract column and assign to appropriate statistics
-ne = m1[0, :]
-m = m1[1, :]
-ld = m1[2, :]
-lnb = m1[3, :]
-hetx = m1[4, :]
-xhet = m1[5, :]
+# Predict the value for the query point
+prediction = model.predict(Z_scaled)
+y_original_scale = inv_boxcox(prediction, lambda_value)
+print("\n Effective population for input population:", y_original_scale[0])
 
 
 
-# Box Cox transform of Ne data
-lambda_value = -0.2
+# # Calculate R2-Score
+# r2_score = r2_score(y_test, y_pred)
+# print(f'R2_Score: {r2_score}')
 
-# Calculate neBoxCox using the provided lambda
-neBoxCox = ((ne ** lambda_value) - 1) / lambda_value
-
-# Combine columns m, ld, lnb, hetx, xhet into a data matrix
-datamatrix = np.columnstack((m,ld,lnb,hetx,xhet))
-
-result1 = makepd5(targetStatVals, neBoxCox, datamatrix, 0.05, np.arange(1, datamatrix.shape[0] + 1), False)
-
-# Inverse Box-Cox transformation
-result1['x'] = ((lambda_value * result1['x']) + 1) ** (1 / lambda_value)
-
-
-# Statistics to compute
-# Inverse Box-Cox transform for mean
-mean = ((lambda_value * result1['predmean']) + 1) ** (1 / lambda_value)
-# Median
-median = np.median(result1['x'])  # Using NumPy's median function
-# Variance
-vari = np.var(result1['x'])  # Using NumPy's var function
-# Minimum
-min_val = np.min(result1['x'])  # Using NumPy's min function
-# Maximum
-max_val = np.max(result1['x'])  # Using NumPy's max function
-
-
-# maybe we should use 0.25 and 0.75?
-quantiles = np.percentile(result1['x'], [2.5, 97.5])
+# #Plot prediction errors
+# fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
+# PredictionErrorDisplay.from_predictions(
+#     y,
+#     y_pred=cv_pred,
+#     kind="actual_vs_predicted",
+#     subsample=100,
+#     ax=axs[0],
+#     random_state=0,
+# )
+# axs[0].set_title("Actual vs. Predicted values")
+# PredictionErrorDisplay.from_predictions(
+#     y,
+#     y_pred=cv_pred,
+#     kind="residual_vs_predicted",
+#     subsample=100,
+#     ax=axs[1],
+#     random_state=0,
+# )
+# axs[1].set_title("Residuals vs. Predicted Values")
+# fig.suptitle("Plotting cross-validated predictions")
+# plt.tight_layout()
+# plt.show()
 
 
-# Display the final output
-print("min        max        mean        median      lower95CL   upper95CL\n")
-print("%.2f      %.2f      %.2f      %.2f      %.2f      %.2f\n", min, max, mean, median, quantiles[0], quantiles[1])
 
 
-# rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
-# print(rScriptCMD)
-# res = os.system(rScriptCMD)
 
-# if (res):
-#     print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
-#     exit()
 
-# if (DEBUG):
-#     print("Finish linear regression")
+
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
