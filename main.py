@@ -168,7 +168,7 @@ textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(
 inputPopStats = "inputPopStats_" + getName(fileName) + "_" + str(t)
 with open(inputPopStats, 'w') as fileINPUT:
     fileINPUT.write('\t'.join(textList[0:]) + '\t')
-# fileINPUT.close()
+fileINPUT.close()
 
 if (DEBUG):
     print("Finish calculation of statistics for input population")
@@ -202,7 +202,7 @@ def processRandomPopulation(x):
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
     proc = multiprocessing.Process()
-    process_id = proc._identity[1]
+    process_id = os.getpid()
     # change the intermediate file name by thread id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
@@ -256,32 +256,33 @@ except FileExistsError:
 manager = multiprocessing.Manager()
 result_queue = manager.Queue()
 
+# with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+#     # Submit tasks to the executor and collect the Future objects
+#     futures = [executor.submit(processRandomPopulation, trial_number) for trial_number in range(numOneSampTrials)]
+#
+#     # As each task completes, put the result in the queue
+#     for future in concurrent.futures.as_completed(futures):
+#         result_queue.put(future.result())
+
+
 # Concurrently process the random populations
-with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
-    futures = [executor.map(processRandomPopulation, range(numOneSampTrials))]
+with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
     # As each task completes, put the result in the queue
-    for future in concurrent.futures.as_completed(futures):
-        result_queue.put(future.result())
-
-
-
+    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+        result_queue.put(result)
 
 with fileALLPOP as result_file:
     while not result_queue.empty():
         result = result_queue.get()
-        result_file.write('\t'.join((result)) + '\n')
+        result_file.write('\t'.join(result) + '\n')
 
-# with open('results.txt', 'w') as f:
-#     while not result_queue.empty():
-#         result = result_queue.get()
-#         f.write(f'{result}\n')
 
-# fileALLPOP.close()
 
-# try:
-#     shutil.rmtree(path, ignore_errors=True)
-# except FileExistsError:
-#     pass
+try:
+    shutil.rmtree(path, ignore_errors=True)
+except FileExistsError:
+    pass
+fileALLPOP.close()
 
 #########################################
 # FINISHING ALL POPULATIONS
