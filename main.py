@@ -8,7 +8,7 @@ import shutil
 import numpy as np
 import time
 from statistics import statisticsClass
-import threading
+import multiprocessing
 import concurrent.futures
 import warnings
 from sklearn.linear_model import LinearRegression
@@ -203,9 +203,10 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 def processRandomPopulation(x):
     loci = inputFileStatistics.numLoci
     sampleSize = inputFileStatistics.sampleSize
-    thread_id = threading.get_ident()
+    proc = multiprocessing.Process()
+    process_id = os.getpid()
     # change the intermediate file name by thread id
-    intermediateFilename = str(thread_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
+    intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
         POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
@@ -251,18 +252,39 @@ try:
 except FileExistsError:
     pass
 
-# Concurrently process the random populations
-with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
-    with fileALLPOP as result_file:
-        for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-            result_file.write('\t'.join(result) + '\n')
+# Worker function that computes statistics and puts the result in a queue
 
-fileALLPOP.close()
+#Result queue
+manager = multiprocessing.Manager()
+result_queue = manager.Queue()
+
+# with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+#     # Submit tasks to the executor and collect the Future objects
+#     futures = [executor.submit(processRandomPopulation, trial_number) for trial_number in range(numOneSampTrials)]
+#
+#     # As each task completes, put the result in the queue
+#     for future in concurrent.futures.as_completed(futures):
+#         result_queue.put(future.result())
+
+
+# Concurrently process the random populations
+with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    # As each task completes, put the result in the queue
+    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+        result_queue.put(result)
+
+with fileALLPOP as result_file:
+    while not result_queue.empty():
+        result = result_queue.get()
+        result_file.write('\t'.join(result) + '\n')
+
+
 
 try:
     shutil.rmtree(path, ignore_errors=True)
 except FileExistsError:
     pass
+fileALLPOP.close()
 
 #########################################
 # FINISHING ALL POPULATIONS
