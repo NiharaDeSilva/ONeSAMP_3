@@ -15,6 +15,17 @@ import warnings
 from sklearn.linear_model import LinearRegression
 from scipy import stats
 
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from scipy.stats import boxcox
+from scipy.special import inv_boxcox
+from sklearn.model_selection import cross_val_predict
+
+import matplotlib.pyplot as plt
+from sklearn.metrics import PredictionErrorDisplay
+
+
 NUMBER_OF_STATISTICS = 5
 t = 30
 DEBUG = 0  ## BOUCHER: Change this to 1 for debuggin mode
@@ -166,11 +177,10 @@ inputFileStatistics.test_stat4()
 numLoci = inputFileStatistics.numLoci
 sampleSize = inputFileStatistics.sampleSize
 
-##Creating input file with intial statistics
+##Creating input file & List with intial statistics
 textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(inputFileStatistics.stat3),
             str(inputFileStatistics.stat4), str(inputFileStatistics.stat5)]
 inputStatsList = textList
-print(inputStatsList)
 
 inputPopStats = "inputPopStats_" + getName(fileName) + "_" + str(t)
 with open(inputPopStats, 'w') as fileINPUT:
@@ -264,23 +274,20 @@ manager = multiprocessing.Manager()
 result_queue = manager.Queue()
 results_list = []
 
-# Concurrently process the random populations
-with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+# Parallel process the random populations and add to a queue/list
+with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
     # As each task completes, put the result in the queue
     for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
         result_queue.put(result)
         results_list.append(result)
 
-
+# Write all population stats to a file to pass as a input to R script
 with fileALLPOP as result_file:
     while not result_queue.empty():
         result = result_queue.get()
         result_file.write('\t'.join(result) + '\n')
 
-
-allPopStats = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-print(allPopStats.head())
-
+allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
 
 try:
     shutil.rmtree(path, ignore_errors=True)
@@ -293,8 +300,10 @@ fileALLPOP.close()
 ########################################
 # STARTING LINEAR REGRESSION
 #########################################
+ALL_POP_STATS_FILE = allPopStats
+
 # R SCRIPT
-rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, fileALLPOP, inputPopStats)
+rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
 print(rScriptCMD)
 res = os.system(rScriptCMD)
 
@@ -309,30 +318,11 @@ print("--- %s seconds ---" % (time.time() - start_time))
 
 
 # TODO double check there
-import numpy as np
-import pandas as pd
-# import seaborn as sns
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler
-from scipy.stats import boxcox
-from scipy.special import inv_boxcox
-from sklearn.model_selection import cross_val_predict
-
-import matplotlib.pyplot as plt
-from sklearn.metrics import PredictionErrorDisplay
-
-
-# inputPopStats = pd.read_csv(inputPopStats, sep='\t', header=None)
-# inputPopStats = inputPopStats.drop(labels=5, axis=1)
 inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-# allPopStats = pd.read_csv(allPopStats, sep='\t', header=None)
-# allPopStats.columns = ['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']
 
 Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
-X = np.array(allPopStats[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
-y = np.array(allPopStats['Ne'])
+X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
+y = np.array(allPopStatistics['Ne'])
 y = np.array([float(value) for value in y if float(value) > 0])
 
 #Normalize the data
@@ -344,7 +334,9 @@ Z_scaled = scaler.fit_transform(Z)
 y_transformed, lambda_value = boxcox(y)
 
 #Split train and test data for cross validation
-X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
+# X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
 
 # Fit the linear regression model
 model = LinearRegression()
@@ -356,9 +348,11 @@ y_pred = result.predict(X_test)
 
 # Perform k-fold cross-validation
 # Model evaluation with cross validation
-print("Model Evaluation\n")
-cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
-cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
+# print("Model Evaluation\n")
+# cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
+# cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
+cv_scores = cross_val_score(model, X, y, cv=10)
+cv_pred = cross_val_predict(model, X, y, cv=10)
 print("Cross validation scores : ", cv_scores[0], cv_scores[1], cv_scores[2], cv_scores[3], cv_scores[4])
 
 # Get the coefficients for each feature
@@ -371,9 +365,11 @@ for feature, coef in zip(inputStatsList.columns, coefficients_original_scale):
     print(f"{feature}: {coef:.4f}")
 
 # Predict the value for the query point
-prediction = model.predict(Z_scaled)
+# prediction = model.predict(Z_scaled)
+prediction = model.predict(Z)
 y_original_scale = inv_boxcox(prediction, lambda_value)
-print("\n Effective population for input population:", y_original_scale[0])
+# print("\n Effective population for input population:", y_original_scale[0])
+print("\n Effective population for input population:", prediction)
 
 
 # for 95% confidence interval; use 0.01 for 99%-CI.
@@ -386,70 +382,45 @@ alpha = 0.05
 # print(conf_interval)
 
 
-def conf_int(alpha, lr, X_train, y_train):
-    """
-    Returns (1-alpha) 2-sided confidence intervals
-    for sklearn.LinearRegression coefficients
-    as a pandas DataFrame
-    """
-    X = pd.DataFrame(X_train)
-    y = pd.DataFrame(y_train)
-    coefs = np.r_[[lr.intercept_], lr.coef_]
-    X_aux = X.copy()
-    X_aux.insert(0, 'const', 1)
-    dof = -np.diff(X_aux.shape)[0]
+def get_conf_int(alpha, lr, X, y):
+    # Ensure X is a NumPy array
+    X = np.array(X)
+    X = X.astype(float)
+    y = np.array(y)
+
+    # Add a column of ones to the features matrix to represent the intercept
+    X_aux = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
+
+    # Calculate degrees of freedom
+    dof = X_aux.shape[0] - X_aux.shape[1]
+
+    # Calculate the mean squared error (mse)
     mse = np.sum((y - lr.predict(X)) ** 2) / dof
+
+    # Calculate variance of parameters
     var_params = np.diag(np.linalg.inv(X_aux.T.dot(X_aux)))
-    t_val = stats.t.isf(alpha / 2, dof)
+
+    # Get t-statistic value for alpha/2
+    t_val = stats.t.ppf(1 - alpha / 2, dof)
+
+    # Calculate the margin of error (gap)
     gap = t_val * np.sqrt(mse * var_params)
 
+    # Coefficients, including intercept
+    coefs = np.concatenate([[lr.intercept_], lr.coef_])
+
+    # Create lower and upper bounds
+    lower_bound = coefs - gap
+    upper_bound = coefs + gap
+
+    # You can return the bounds in whatever format you prefer;
+    # here we'll stack them into an array for convenience.
     return pd.DataFrame({
         'lower': coefs - gap, 'upper': coefs + gap
     })
 
-print(conf_int(0.05, model, X_train, y_train))
-
-# def get_conf_int(alpha, lr, X, y):
-#     # Ensure X is a NumPy array
-#     X = np.array(X)
-#     y = np.array(y)
-#
-#     # Add a column of ones to the features matrix to represent the intercept
-#     X_aux = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
-#
-#     # Calculate degrees of freedom
-#     dof = X_aux.shape[0] - X_aux.shape[1]
-#
-#     # Calculate the mean squared error (mse)
-#     mse = np.sum((y - lr.predict(X)) ** 2) / dof
-#
-#     # Calculate variance of parameters
-#     var_params = np.diag(np.linalg.inv(X_aux.T.dot(X_aux)))
-#
-#     # Get t-statistic value for alpha/2
-#     t_val = stats.t.ppf(1 - alpha / 2, dof)
-#
-#     # Calculate the margin of error (gap)
-#     gap = t_val * np.sqrt(mse * var_params)
-#
-#     # Coefficients, including intercept
-#     coefs = np.concatenate([[lr.intercept_], lr.coef_])
-#
-#     # Create lower and upper bounds
-#     lower_bound = coefs - gap
-#     upper_bound = coefs + gap
-#
-#     # You can return the bounds in whatever format you prefer;
-#     # here we'll stack them into an array for convenience.
-#     return pd.DataFrame({
-#         'lower': coefs - gap, 'upper': coefs + gap
-#     }, index=X_aux.columns)
-
-
-# fit a sklearn LinearRegression model
-
-# conf_interval = get_conf_int(alpha, model, X_train, y_train)
-# print(conf_interval)
+conf_interval = get_conf_int(alpha, model, X_train, y_train)
+print(conf_interval)
 
 
 
