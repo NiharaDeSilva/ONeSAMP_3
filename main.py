@@ -295,6 +295,9 @@ except FileExistsError:
     pass
 fileALLPOP.close()
 
+cal_time = time.time()
+print(cal_time)
+
 #########################################
 # FINISHING ALL POPULATIONS
 ########################################
@@ -428,29 +431,29 @@ print(conf_interval)
 # r2_score = r2_score(y_test, y_pred)
 # print(f'R2_Score: {r2_score}')
 
-#Plot prediction errors
-fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
-PredictionErrorDisplay.from_predictions(
-    y,
-    y_pred=cv_pred,
-    kind="actual_vs_predicted",
-    subsample=100,
-    ax=axs[0],
-    random_state=0,
-)
-axs[0].set_title("Actual vs. Predicted values")
-PredictionErrorDisplay.from_predictions(
-    y,
-    y_pred=cv_pred,
-    kind="residual_vs_predicted",
-    subsample=100,
-    ax=axs[1],
-    random_state=0,
-)
-axs[1].set_title("Residuals vs. Predicted Values")
-fig.suptitle("Plotting cross-validated predictions")
-plt.tight_layout()
-plt.show()
+# #Plot prediction errors
+# fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
+# PredictionErrorDisplay.from_predictions(
+#     y,
+#     y_pred=cv_pred,
+#     kind="actual_vs_predicted",
+#     subsample=100,
+#     ax=axs[0],
+#     random_state=0,
+# )
+# axs[0].set_title("Actual vs. Predicted values")
+# PredictionErrorDisplay.from_predictions(
+#     y,
+#     y_pred=cv_pred,
+#     kind="residual_vs_predicted",
+#     subsample=100,
+#     ax=axs[1],
+#     random_state=0,
+# )
+# axs[1].set_title("Residuals vs. Predicted Values")
+# fig.suptitle("Plotting cross-validated predictions")
+# plt.tight_layout()
+# plt.show()
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
