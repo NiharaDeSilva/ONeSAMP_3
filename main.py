@@ -6,12 +6,14 @@ import argparse
 import os
 import shutil
 import numpy as np
+import pandas as pd
 import time
 from statistics import statisticsClass
 import multiprocessing
 import concurrent.futures
 import warnings
 from sklearn.linear_model import LinearRegression
+from scipy import stats
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -167,6 +169,9 @@ sampleSize = inputFileStatistics.sampleSize
 ##Creating input file with intial statistics
 textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(inputFileStatistics.stat3),
             str(inputFileStatistics.stat4), str(inputFileStatistics.stat5)]
+inputStatsList = textList
+print(inputStatsList)
+
 inputPopStats = "inputPopStats_" + getName(fileName) + "_" + str(t)
 with open(inputPopStats, 'w') as fileINPUT:
     fileINPUT.write('\t'.join(textList[0:]) + '\t')
@@ -257,27 +262,24 @@ except FileExistsError:
 #Result queue
 manager = multiprocessing.Manager()
 result_queue = manager.Queue()
-
-# with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
-#     # Submit tasks to the executor and collect the Future objects
-#     futures = [executor.submit(processRandomPopulation, trial_number) for trial_number in range(numOneSampTrials)]
-#
-#     # As each task completes, put the result in the queue
-#     for future in concurrent.futures.as_completed(futures):
-#         result_queue.put(future.result())
-
+results_list = []
 
 # Concurrently process the random populations
 with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
     # As each task completes, put the result in the queue
     for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
         result_queue.put(result)
+        results_list.append(result)
+
 
 with fileALLPOP as result_file:
     while not result_queue.empty():
         result = result_queue.get()
         result_file.write('\t'.join(result) + '\n')
 
+
+allPopStats = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+print(allPopStats.head())
 
 
 try:
@@ -291,6 +293,21 @@ fileALLPOP.close()
 ########################################
 # STARTING LINEAR REGRESSION
 #########################################
+# R SCRIPT
+rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, fileALLPOP, inputPopStats)
+print(rScriptCMD)
+res = os.system(rScriptCMD)
+
+if (res):
+    print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
+    exit()
+
+if (DEBUG):
+    print("Finish linear regression")
+
+print("--- %s seconds ---" % (time.time() - start_time))
+
+
 # TODO double check there
 import numpy as np
 import pandas as pd
@@ -307,16 +324,16 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import PredictionErrorDisplay
 
 
-inputPopStats = pd.read_csv(inputPopStats, sep='\t', header=None)
-inputPopStats = inputPopStats.drop(labels=5, axis=1)
-inputPopStats.columns = ['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']
-allPopStats = pd.read_csv(allPopStats, sep='\t', header=None)
-allPopStats.columns = ['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']
+# inputPopStats = pd.read_csv(inputPopStats, sep='\t', header=None)
+# inputPopStats = inputPopStats.drop(labels=5, axis=1)
+inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+# allPopStats = pd.read_csv(allPopStats, sep='\t', header=None)
+# allPopStats.columns = ['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']
 
-
-Z = np.array(inputPopStats[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
+Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
 X = np.array(allPopStats[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
 y = np.array(allPopStats['Ne'])
+y = np.array([float(value) for value in y if float(value) > 0])
 
 #Normalize the data
 scaler = StandardScaler()
@@ -350,13 +367,89 @@ coefficients_original_scale = coefficients / lambda_value
 
 # Print the coefficients for each feature
 print("\nCoefficients for each feature:")
-for feature, coef in zip(inputPopStats.columns, coefficients_original_scale):
+for feature, coef in zip(inputStatsList.columns, coefficients_original_scale):
     print(f"{feature}: {coef:.4f}")
 
 # Predict the value for the query point
 prediction = model.predict(Z_scaled)
 y_original_scale = inv_boxcox(prediction, lambda_value)
 print("\n Effective population for input population:", y_original_scale[0])
+
+
+# for 95% confidence interval; use 0.01 for 99%-CI.
+alpha = 0.05
+
+# import statsmodels.api as sm
+# alpha = 0.05 # 95% confidence interval
+# lr = sm.OLS(y_train, sm.add_constant(X_train)).fit()
+# conf_interval = lr.conf_int(alpha)
+# print(conf_interval)
+
+
+def conf_int(alpha, lr, X_train, y_train):
+    """
+    Returns (1-alpha) 2-sided confidence intervals
+    for sklearn.LinearRegression coefficients
+    as a pandas DataFrame
+    """
+    X = pd.DataFrame(X_train)
+    y = pd.DataFrame(y_train)
+    coefs = np.r_[[lr.intercept_], lr.coef_]
+    X_aux = X.copy()
+    X_aux.insert(0, 'const', 1)
+    dof = -np.diff(X_aux.shape)[0]
+    mse = np.sum((y - lr.predict(X)) ** 2) / dof
+    var_params = np.diag(np.linalg.inv(X_aux.T.dot(X_aux)))
+    t_val = stats.t.isf(alpha / 2, dof)
+    gap = t_val * np.sqrt(mse * var_params)
+
+    return pd.DataFrame({
+        'lower': coefs - gap, 'upper': coefs + gap
+    })
+
+print(conf_int(0.05, model, X_train, y_train))
+
+# def get_conf_int(alpha, lr, X, y):
+#     # Ensure X is a NumPy array
+#     X = np.array(X)
+#     y = np.array(y)
+#
+#     # Add a column of ones to the features matrix to represent the intercept
+#     X_aux = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
+#
+#     # Calculate degrees of freedom
+#     dof = X_aux.shape[0] - X_aux.shape[1]
+#
+#     # Calculate the mean squared error (mse)
+#     mse = np.sum((y - lr.predict(X)) ** 2) / dof
+#
+#     # Calculate variance of parameters
+#     var_params = np.diag(np.linalg.inv(X_aux.T.dot(X_aux)))
+#
+#     # Get t-statistic value for alpha/2
+#     t_val = stats.t.ppf(1 - alpha / 2, dof)
+#
+#     # Calculate the margin of error (gap)
+#     gap = t_val * np.sqrt(mse * var_params)
+#
+#     # Coefficients, including intercept
+#     coefs = np.concatenate([[lr.intercept_], lr.coef_])
+#
+#     # Create lower and upper bounds
+#     lower_bound = coefs - gap
+#     upper_bound = coefs + gap
+#
+#     # You can return the bounds in whatever format you prefer;
+#     # here we'll stack them into an array for convenience.
+#     return pd.DataFrame({
+#         'lower': coefs - gap, 'upper': coefs + gap
+#     }, index=X_aux.columns)
+
+
+# fit a sklearn LinearRegression model
+
+# conf_interval = get_conf_int(alpha, model, X_train, y_train)
+# print(conf_interval)
 
 
 
@@ -387,12 +480,6 @@ axs[1].set_title("Residuals vs. Predicted Values")
 fig.suptitle("Plotting cross-validated predictions")
 plt.tight_layout()
 plt.show()
-
-
-
-
-
-
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
