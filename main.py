@@ -275,7 +275,7 @@ result_queue = manager.Queue()
 results_list = []
 
 # Parallel process the random populations and add to a queue/list
-with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
     # As each task completes, put the result in the queue
     for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
         result_queue.put(result)
