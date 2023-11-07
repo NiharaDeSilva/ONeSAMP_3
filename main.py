@@ -270,22 +270,32 @@ except FileExistsError:
 # Worker function that computes statistics and puts the result in a queue
 
 #Result queue
-manager = multiprocessing.Manager()
-result_queue = manager.Queue()
-results_list = []
+# manager = multiprocessing.Manager()
+# result_queue = manager.Queue()
+# results_list = []
 
-# Parallel process the random populations and add to a queue/list
+# # Parallel process the random populations and add to a queue/list
+# with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
+#     # As each task completes, put the result in the queue
+#     for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+#         result_queue.put(result)
+#         results_list.append(result)
+
 with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
     # As each task completes, put the result in the queue
-    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-        result_queue.put(result)
-        results_list.append(result)
+    results_list = list(executor.map(processRandomPopulation, range(numOneSampTrials)))
+
 
 # Write all population stats to a file to pass as a input to R script
+# with fileALLPOP as result_file:
+#     while not result_queue.empty():
+#         result = result_queue.get()
+#         result_file.write('\t'.join(result) + '\n')
+
 with fileALLPOP as result_file:
-    while not result_queue.empty():
-        result = result_queue.get()
+    for result in results_list:
         result_file.write('\t'.join(result) + '\n')
+
 
 allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
 
