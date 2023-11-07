@@ -197,6 +197,10 @@ if (DEBUG):
 #########################################
 # STARTING ALL POPULATIONS
 #########################################
+#Result queue
+manager = multiprocessing.Manager()
+result_queue = manager.Queue()
+results_list = []
 
 if (DEBUG):
     print("Start calculation of statistics for ALL populations")
@@ -258,6 +262,8 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
+    # result_queue.put(textList)
+    # results_list.append(textList)
 
 allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 fileALLPOP = open(allPopStats, 'w+')
@@ -267,23 +273,30 @@ try:
 except FileExistsError:
     pass
 
-# Worker function that computes statistics and puts the result in a queue
 
-#Result queue
-# manager = multiprocessing.Manager()
-# result_queue = manager.Queue()
-# results_list = []
-
-# # Parallel process the random populations and add to a queue/list
-# with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
-#     # As each task completes, put the result in the queue
-#     for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-#         result_queue.put(result)
-#         results_list.append(result)
-
+# Parallel process the random populations and add to a queue/list
 with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
     # As each task completes, put the result in the queue
-    results_list = list(executor.map(processRandomPopulation, range(numOneSampTrials)))
+    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+        try:
+            result_queue.put(result)
+            results_list.append(result)
+        except Exception as e:
+            print(f"Generated an exception: {e}")
+
+# with concurrent.futures.ProcessPoolExecutor(max_workers= 1) as executor:
+#     future_to_index = {executor.submit(processRandomPopulation, i): i for i in range(numOneSampTrials)}
+#     for future in concurrent.futures.as_completed(future_to_index):
+#         index = future_to_index[future]
+#         try:
+#             result = future.result()
+#             results_list.append(result)
+#         except Exception as e:
+#             print(f"Generated an exception: {e}")
+# print(results_list)
+# # Results are stored as tuples of (index, result)
+# You can sort or process them as needed.
+# results.sort(key=lambda x: x[0])  # Sorting results based on the original index if needed
 
 
 # Write all population stats to a file to pass as a input to R script
@@ -338,13 +351,13 @@ X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_
 y = np.array(allPopStatistics['Ne'])
 y = np.array([float(value) for value in y if float(value) > 0])
 
-#Normalize the data
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-Z_scaled = scaler.fit_transform(Z)
-
-#Apply box-cox transformation
-y_transformed, lambda_value = boxcox(y)
+# #Normalize the data
+# scaler = StandardScaler()
+# X_scaled = scaler.fit_transform(X)
+# Z_scaled = scaler.fit_transform(Z)
+#
+# #Apply box-cox transformation
+# y_transformed, lambda_value = boxcox(y)
 
 #Split train and test data for cross validation
 # X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
@@ -370,17 +383,17 @@ print("Cross validation scores : ", cv_scores[0], cv_scores[1], cv_scores[2], cv
 
 # Get the coefficients for each feature
 coefficients = model.coef_
-coefficients_original_scale = coefficients / lambda_value
+# coefficients_original_scale = coefficients / lambda_value
 
 # Print the coefficients for each feature
 print("\nCoefficients for each feature:")
-for feature, coef in zip(inputStatsList.columns, coefficients_original_scale):
+for feature, coef in zip(inputStatsList.columns, coefficients):
     print(f"{feature}: {coef:.4f}")
 
 # Predict the value for the query point
 # prediction = model.predict(Z_scaled)
 prediction = model.predict(Z)
-y_original_scale = inv_boxcox(prediction, lambda_value)
+# y_original_scale = inv_boxcox(prediction, lambda_value)
 # print("\n Effective population for input population:", y_original_scale[0])
 print("\n Effective population for input population:", prediction)
 
