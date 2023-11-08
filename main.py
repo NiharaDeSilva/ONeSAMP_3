@@ -13,6 +13,7 @@ import multiprocessing
 import concurrent.futures
 import warnings
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from scipy import stats
 
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
@@ -336,7 +337,7 @@ y = np.array([float(value) for value in y if float(value) > 0])
 
 #Split train and test data for cross validation
 # X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
 # Fit the linear regression model
@@ -346,22 +347,6 @@ result = model.fit(X_train, y_train)
 #Predict for Test values
 y_pred = result.predict(X_test)
 
-# Perform k-fold cross-validation
-# cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
-# cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
-cv_scores = cross_val_score(model, X, y, cv=10)
-cv_pred = cross_val_predict(model, X, y, cv=10)
-print("Cross validation scores : ", cv_scores[0], cv_scores[1], cv_scores[2], cv_scores[3], cv_scores[4])
-
-# Get the coefficients for each feature
-coefficients = model.coef_
-# coefficients_original_scale = coefficients / lambda_value
-
-# Print the coefficients for each feature
-print("\nCoefficients for each feature:")
-for feature, coef in zip(inputStatsList.columns, coefficients):
-    print(f"{feature}: {coef:.4f}")
-
 # Predict the value for the query point
 # prediction = model.predict(Z_scaled)
 prediction = model.predict(Z)
@@ -370,40 +355,60 @@ prediction = model.predict(Z)
 
 ####### CALCULATING CONFIDENCE INTERVAL #########
 
-# Convert to a numeric array
-X_train = X_train.astype(np.float64)
-y_train = y_train.astype(np.float64)
-Z = Z.astype(np.float64)
+def getConfInterval(model, X_train, y_train, Z, prediction ):
+    # Convert to a numeric array
+    X_train = X_train.astype(np.float64)
+    y_train = y_train.astype(np.float64)
+    Z = Z.astype(np.float64)
 
-# Predictions on the training data
-y_train_pred = model.predict(X_train)
+    # Predictions on the training data
+    y_train_pred = model.predict(X_train)
 
-# Compute the MSE on the training data
-mse = np.mean((y_train - y_train_pred) ** 2)
+    # Compute the MSE on the training data
+    mse = np.mean((y_train - y_train_pred) ** 2)
 
-# Compute the standard error of the prediction
-# The standard error is sqrt((1/N) * (1 + new_X * (X'X)^-1 * new_X')) * sigma
-# Where sigma is the std deviation of the residuals (sqrt of MSE)
+    # Compute the standard error of the prediction
+    # The standard error is sqrt((1/N) * (1 + new_X * (X'X)^-1 * new_X')) * sigma
+    # Where sigma is the std deviation of the residuals (sqrt of MSE)
 
-# First, compute the (X'X)^-1 matrix
-XX_inv = np.linalg.inv(np.dot(X_train.T, X_train))
+    # First, compute the (X'X)^-1 matrix
+    XX_inv = np.linalg.inv(np.dot(X_train.T, X_train))
 
-# Then, compute the leverage (hat) matrix for the new data point
-hat_matrix = np.dot(np.dot(Z, XX_inv), Z.T)
+    # Then, compute the leverage (hat) matrix for the new data point
+    hat_matrix = np.dot(np.dot(Z, XX_inv), Z.T)
 
-# Now calculate the standard error of the prediction
-std_error = np.sqrt((1 + hat_matrix) * mse)
+    # Now calculate the standard error of the prediction
+    std_error = np.sqrt((1 + hat_matrix) * mse)
 
-# The t value for the 95% confidence interval
-t_value = stats.t.ppf(1 - 0.05 / 2, df=len(X_train) - X_train.shape[1] - 1)
+    # The t value for the 95% confidence interval
+    t_value = stats.t.ppf(1 - 0.05 / 2, df=len(X_train) - X_train.shape[1] - 1)
 
-# Confidence interval for the new prediction
-ci_lower = prediction - t_value * std_error
-ci_upper = prediction + t_value * std_error
+    # Confidence interval for the new prediction
+    ci_lower = prediction - t_value * std_error
+    ci_upper = prediction + t_value * std_error
+
+    print(f"95% confidence interval: ({ci_lower.round(decimals=2)}, {ci_upper.round(decimals=2)})")
 
 # Output the result
-print(f"Prediction of Linear Regression Model: {prediction}")
-print(f"95% confidence interval: ({ci_lower}, {ci_upper})")
+print(f"\nPrediction of Linear Regression Model: {prediction.round(decimals=2)}")
+getConfInterval(model, X_train, y_train, Z, prediction)
+
+# Get the coefficients for each feature
+coefficients = model.coef_
+# coefficients_original_scale = coefficients / lambda_value
+
+# Print the coefficients for each feature
+print("\nCoefficients for each feature:")
+for feature, coef in zip(inputStatsList.columns, coefficients):
+    print(f"Variable: {feature}: {coef:.2f}")
+
+
+# Perform k-fold cross-validation
+# cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
+# cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
+cv_scores = cross_val_score(model, X, y, cv=10)
+cv_pred = cross_val_predict(model, X, y, cv=10)
+print("\nCross validation scores : ", round(cv_scores[0],2), round(cv_scores[1],2), round(cv_scores[2],2), round(cv_scores[3],2), round(cv_scores[4],2))
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
@@ -446,11 +451,43 @@ print("--- %s seconds ---" % (time.time() - start_time))
 ##########################
 # RANDOM FOREST REGRESSION
 ##########################
+# Initialize the Random Forest Regressor
+rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+
+# Train the model on the training data
+rf_regressor.fit(X_train, y_train)
+
+# Make predictions on test data
+y_pred = rf_regressor.predict(X_test)
+
+# Predict the Ne value for input population
+rf_prediction = rf_regressor.predict(Z)
+# Output the result
+print(f"\nPrediction of Random Forest Regression Model: {rf_prediction.round(decimals=2)}")
+getConfInterval(rf_regressor, X_train, y_train, Z, rf_prediction)
 
 
+# Using Mean Squared Error to evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+print(f"\nMean Squared Error: {mse:.2f}")
+print(f"Root Mean Squared Error: {rmse:.2f}")
+
+# Get numerical feature importances
+importances = list(rf_regressor.feature_importances_)
+
+# List of tuples with variable and importance
+feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(inputStatsList.columns, importances)]
+
+# Sort the feature importances by most important first
+feature_importances = sorted(feature_importances, key=lambda x: x[1], reverse=True)
+
+# Print out the feature and importances
+print("\nFeature importance")
+[print('Variable: {:30} Importance: {}'.format(*pair)) for pair in feature_importances]
 
 
-
+print("--- %s seconds ---" % (time.time() - start_time))
 
 
 ##########################
