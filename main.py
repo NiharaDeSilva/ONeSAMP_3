@@ -22,8 +22,8 @@ from scipy.stats import boxcox
 from scipy.special import inv_boxcox
 from sklearn.model_selection import cross_val_predict
 
-import matplotlib.pyplot as plt
-from sklearn.metrics import PredictionErrorDisplay
+# import matplotlib.pyplot as plt
+# from sklearn.metrics import PredictionErrorDisplay
 
 
 NUMBER_OF_STATISTICS = 5
@@ -198,8 +198,6 @@ if (DEBUG):
 # STARTING ALL POPULATIONS
 #########################################
 #Result queue
-manager = multiprocessing.Manager()
-result_queue = manager.Queue()
 results_list = []
 
 if (DEBUG):
@@ -262,8 +260,6 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
-    # result_queue.put(textList)
-    # results_list.append(textList)
 
 allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 fileALLPOP = open(allPopStats, 'w+')
@@ -274,43 +270,19 @@ except FileExistsError:
     pass
 
 
-# Parallel process the random populations and add to a queue/list
+# Parallel process the random populations and add to a list
 with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
     # As each task completes, put the result in the queue
     for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
         try:
-            result_queue.put(result)
             results_list.append(result)
         except Exception as e:
             print(f"Generated an exception: {e}")
 
-# with concurrent.futures.ProcessPoolExecutor(max_workers= 1) as executor:
-#     future_to_index = {executor.submit(processRandomPopulation, i): i for i in range(numOneSampTrials)}
-#     for future in concurrent.futures.as_completed(future_to_index):
-#         index = future_to_index[future]
-#         try:
-#             result = future.result()
-#             results_list.append(result)
-#         except Exception as e:
-#             print(f"Generated an exception: {e}")
-# print(results_list)
-# # Results are stored as tuples of (index, result)
-# You can sort or process them as needed.
-# results.sort(key=lambda x: x[0])  # Sorting results based on the original index if needed
-
-
-# Write all population stats to a file to pass as a input to R script
-# with fileALLPOP as result_file:
-#     while not result_queue.empty():
-#         result = result_queue.get()
-#         result_file.write('\t'.join(result) + '\n')
-
+# Write all population stats to a file to pass as input for Rscript
 with fileALLPOP as result_file:
     for result in results_list:
         result_file.write('\t'.join(result) + '\n')
-
-
-allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
 
 try:
     shutil.rmtree(path, ignore_errors=True)
@@ -318,8 +290,6 @@ except FileExistsError:
     pass
 fileALLPOP.close()
 
-cal_time = time.time()
-print(cal_time)
 
 #########################################
 # FINISHING ALL POPULATIONS
@@ -342,10 +312,15 @@ if (DEBUG):
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
+################################
+# LINEAR REGRESSION WITH SKLEARN
+################################
 
-# TODO double check there
+# Assign input and all population stats to dataframes with column names
+allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
 inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
 
+# Assign dependent and independent variables for regression model
 Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
 X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
 y = np.array(allPopStatistics['Ne'])
@@ -366,15 +341,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # Fit the linear regression model
 model = LinearRegression()
-# model.fit(X_train, y_train, sample_weight=weights)
 result = model.fit(X_train, y_train)
 
 #Predict for Test values
 y_pred = result.predict(X_test)
 
 # Perform k-fold cross-validation
-# Model evaluation with cross validation
-# print("Model Evaluation\n")
 # cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
 # cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
 cv_scores = cross_val_score(model, X, y, cv=10)
@@ -395,60 +367,46 @@ for feature, coef in zip(inputStatsList.columns, coefficients):
 prediction = model.predict(Z)
 # y_original_scale = inv_boxcox(prediction, lambda_value)
 # print("\n Effective population for input population:", y_original_scale[0])
-print("\n Effective population for input population:", prediction)
+
+####### CALCULATING CONFIDENCE INTERVAL #########
+
+# Convert to a numeric array
+X_train = X_train.astype(np.float64)
+y_train = y_train.astype(np.float64)
+Z = Z.astype(np.float64)
+
+# Predictions on the training data
+y_train_pred = model.predict(X_train)
+
+# Compute the MSE on the training data
+mse = np.mean((y_train - y_train_pred) ** 2)
+
+# Compute the standard error of the prediction
+# The standard error is sqrt((1/N) * (1 + new_X * (X'X)^-1 * new_X')) * sigma
+# Where sigma is the std deviation of the residuals (sqrt of MSE)
+
+# First, compute the (X'X)^-1 matrix
+XX_inv = np.linalg.inv(np.dot(X_train.T, X_train))
+
+# Then, compute the leverage (hat) matrix for the new data point
+hat_matrix = np.dot(np.dot(Z, XX_inv), Z.T)
+
+# Now calculate the standard error of the prediction
+std_error = np.sqrt((1 + hat_matrix) * mse)
+
+# The t value for the 95% confidence interval
+t_value = stats.t.ppf(1 - 0.05 / 2, df=len(X_train) - X_train.shape[1] - 1)
+
+# Confidence interval for the new prediction
+ci_lower = prediction - t_value * std_error
+ci_upper = prediction + t_value * std_error
+
+# Output the result
+print(f"Prediction of Linear Regression Model: {prediction}")
+print(f"95% confidence interval: ({ci_lower}, {ci_upper})")
 
 
-# for 95% confidence interval; use 0.01 for 99%-CI.
-alpha = 0.05
-
-# import statsmodels.api as sm
-# alpha = 0.05 # 95% confidence interval
-# lr = sm.OLS(y_train, sm.add_constant(X_train)).fit()
-# conf_interval = lr.conf_int(alpha)
-# print(conf_interval)
-
-
-def get_conf_int(alpha, lr, X, y):
-    # Ensure X is a NumPy array
-    X = np.array(X)
-    X = X.astype(float)
-    y = np.array(y)
-
-    # Add a column of ones to the features matrix to represent the intercept
-    X_aux = np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
-
-    # Calculate degrees of freedom
-    dof = X_aux.shape[0] - X_aux.shape[1]
-
-    # Calculate the mean squared error (mse)
-    mse = np.sum((y - lr.predict(X)) ** 2) / dof
-
-    # Calculate variance of parameters
-    var_params = np.diag(np.linalg.inv(X_aux.T.dot(X_aux)))
-
-    # Get t-statistic value for alpha/2
-    t_val = stats.t.ppf(1 - alpha / 2, dof)
-
-    # Calculate the margin of error (gap)
-    gap = t_val * np.sqrt(mse * var_params)
-
-    # Coefficients, including intercept
-    coefs = np.concatenate([[lr.intercept_], lr.coef_])
-
-    # Create lower and upper bounds
-    lower_bound = coefs - gap
-    upper_bound = coefs + gap
-
-    # You can return the bounds in whatever format you prefer;
-    # here we'll stack them into an array for convenience.
-    return pd.DataFrame({
-        'lower': coefs - gap, 'upper': coefs + gap
-    })
-
-conf_interval = get_conf_int(alpha, model, X_train, y_train)
-print(conf_interval)
-
-
+print("--- %s seconds ---" % (time.time() - start_time))
 
 # # Calculate R2-Score
 # r2_score = r2_score(y_test, y_pred)
@@ -456,7 +414,7 @@ print(conf_interval)
 
 # #Plot prediction errors
 # fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
-# PredictionErrorDisplay.from_predictions(
+# PredictionErrorDisplay.from_prediction(
 #     y,
 #     y_pred=cv_pred,
 #     kind="actual_vs_predicted",
@@ -465,7 +423,7 @@ print(conf_interval)
 #     random_state=0,
 # )
 # axs[0].set_title("Actual vs. Predicted values")
-# PredictionErrorDisplay.from_predictions(
+# PredictionErrorDisplay.from_prediction(
 #     y,
 #     y_pred=cv_pred,
 #     kind="residual_vs_predicted",
@@ -474,12 +432,9 @@ print(conf_interval)
 #     random_state=0,
 # )
 # axs[1].set_title("Residuals vs. Predicted Values")
-# fig.suptitle("Plotting cross-validated predictions")
+# fig.suptitle("Plotting cross-validated prediction")
 # plt.tight_layout()
 # plt.show()
-
-
-print("--- %s seconds ---" % (time.time() - start_time))
 
 
 # Deleting temporary files
@@ -488,6 +443,15 @@ print("--- %s seconds ---" % (time.time() - start_time))
 #
 # delete2 = "rm " + allPopStats
 # delete_ALLPOP = os.system(delete2)
+##########################
+# RANDOM FOREST REGRESSION
+##########################
+
+
+
+
+
+
 
 ##########################
 # END
