@@ -464,7 +464,16 @@ y_pred = rf_regressor.predict(X_test)
 rf_prediction = rf_regressor.predict(Z)
 # Output the result
 print(f"\nPrediction of Random Forest Regression Model: {rf_prediction.round(decimals=2)}")
-getConfInterval(rf_regressor, X_train, y_train, Z, rf_prediction)
+
+# Get the predictions from each tree for the new data point
+tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
+
+# Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
+lower_bound_new_data_point = np.percentile(tree_predictions, 2.5)
+upper_bound_new_data_point = np.percentile(tree_predictions, 97.5)
+
+# Output the confidence interval
+print(f"95% confidence interval for the new data point: [{lower_bound_new_data_point}, {upper_bound_new_data_point}]")
 
 
 # Using Mean Squared Error to evaluate the model
