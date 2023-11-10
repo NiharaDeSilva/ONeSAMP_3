@@ -5,7 +5,7 @@ mutationRate="0.000000012"
 rangeNe=100,500
 theta=0.000048,0.0048
 microsatsOrSNPs=s
-NeVals="00200"
+NeVals="00100"
 numPOP="00256"
 
 outputSampleSizes=(50 100 200)
