@@ -387,7 +387,7 @@ def getConfInterval(model, X_train, y_train, Z, prediction ):
     ci_lower = prediction - t_value * std_error
     ci_upper = prediction + t_value * std_error
 
-    print(f"95% confidence interval: ({ci_lower.round(decimals=2)}, {ci_upper.round(decimals=2)})")
+    print(f"95% confidence interval: [{ci_lower[0][0].round(decimals=2)}, {ci_upper[0][0].round(decimals=2)}]")
 
 # Output the result
 print(f"\nPrediction of Linear Regression Model: {prediction.round(decimals=2)}")
@@ -469,11 +469,11 @@ print(f"\nPrediction of Random Forest Regression Model: {rf_prediction.round(dec
 tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
 
 # Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
-lower_bound_new_data_point = np.percentile(tree_predictions, 2.5)
-upper_bound_new_data_point = np.percentile(tree_predictions, 97.5)
+lower_bound = np.percentile(tree_predictions, 2.5)
+upper_bound = np.percentile(tree_predictions, 97.5)
 
 # Output the confidence interval
-print(f"95% confidence interval for the new data point: [{lower_bound_new_data_point}, {upper_bound_new_data_point}]")
+print(f"95% confidence interval for the new data point: [{lower_bound.round(decimals=2)}, {upper_bound.round(decimals=2)}]")
 
 
 # Using Mean Squared Error to evaluate the model
