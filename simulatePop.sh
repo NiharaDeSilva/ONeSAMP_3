@@ -8,8 +8,8 @@ microsatsOrSNPs=s
 NeVals="00100"
 numPOP="00256"
 
-outputSampleSizes=(50 100 200)
-locis=(40 80 160 320 1000)
+outputSampleSizes=(10 20 30)
+locis=(1000 2000 4000 8000)
 
 for outputSampleSize in "${outputSampleSizes[@]}"; do
   for loci in "${locis[@]}"; do
