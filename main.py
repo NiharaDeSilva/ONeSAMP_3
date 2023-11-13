@@ -262,8 +262,8 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
-allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-fileALLPOP = open(allPopStats, 'w+')
+# allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+# fileALLPOP = open(allPopStats, 'w+')
 
 try:
     os.mkdir(path)
@@ -281,15 +281,15 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
             print(f"Generated an exception: {e}")
 
 # Write all population stats to a file to pass as input for Rscript
-with fileALLPOP as result_file:
-    for result in results_list:
-        result_file.write('\t'.join(result) + '\n')
-
-try:
-    shutil.rmtree(path, ignore_errors=True)
-except FileExistsError:
-    pass
-fileALLPOP.close()
+# with fileALLPOP as result_file:
+#     for result in results_list:
+#         result_file.write('\t'.join(result) + '\n')
+#
+# try:
+#     shutil.rmtree(path, ignore_errors=True)
+# except FileExistsError:
+#     pass
+# fileALLPOP.close()
 
 
 #########################################
@@ -297,21 +297,21 @@ fileALLPOP.close()
 ########################################
 # STARTING LINEAR REGRESSION
 #########################################
-ALL_POP_STATS_FILE = allPopStats
+# ALL_POP_STATS_FILE = allPopStats
 
 # R SCRIPT
-rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
-print(rScriptCMD)
-res = os.system(rScriptCMD)
-
-if (res):
-    print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
-    exit()
-
-if (DEBUG):
-    print("Finish linear regression")
-
-print("--- %s seconds ---" % (time.time() - start_time))
+# rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
+# print(rScriptCMD)
+# res = os.system(rScriptCMD)
+#
+# if (res):
+#     print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
+#     exit()
+#
+# if (DEBUG):
+#     print("Finish linear regression")
+#
+# print("--- %s seconds ---" % (time.time() - start_time))
 
 ################################
 # LINEAR REGRESSION WITH SKLEARN
