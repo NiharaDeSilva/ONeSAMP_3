@@ -285,10 +285,10 @@ with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
 #     for result in results_list:
 #         result_file.write('\t'.join(result) + '\n')
 #
-# try:
-#     shutil.rmtree(path, ignore_errors=True)
-# except FileExistsError:
-#     pass
+try:
+    shutil.rmtree(path, ignore_errors=True)
+except FileExistsError:
+    pass
 # fileALLPOP.close()
 
 
@@ -355,7 +355,7 @@ prediction = model.predict(Z)
 
 ####### CALCULATING CONFIDENCE INTERVAL #########
 
-def getConfInterval(model, X_train, y_train, Z, prediction ):
+def getConfInterval(model, X_train, y_train, Z, prediction):
     # Convert to a numeric array
     X_train = X_train.astype(np.float64)
     y_train = y_train.astype(np.float64)
@@ -405,41 +405,12 @@ for feature, coef in zip(inputStatsList.columns, coefficients):
 
 # Perform k-fold cross-validation
 # cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
-# cv_pred = cross_val_predict(model, X_scaled, y_transformed, cv=10)
-cv_scores = cross_val_score(model, X, y, cv=10)
-cv_pred = cross_val_predict(model, X, y, cv=10)
-print("\nCross validation scores : ", round(cv_scores[0],2), round(cv_scores[1],2), round(cv_scores[2],2), round(cv_scores[3],2), round(cv_scores[4],2))
+# cv_scores = cross_val_score(model, X, y, cv=10)
+# print("\nCross validation scores : ", round(cv_scores[0],2), round(cv_scores[1],2), round(cv_scores[2],2), round(cv_scores[3],2), round(cv_scores[4],2))
 
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
-# # Calculate R2-Score
-# r2_score = r2_score(y_test, y_pred)
-# print(f'R2_Score: {r2_score}')
-
-# #Plot prediction errors
-# fig, axs = plt.subplots(ncols=2, figsize=(8, 4))
-# PredictionErrorDisplay.from_prediction(
-#     y,
-#     y_pred=cv_pred,
-#     kind="actual_vs_predicted",
-#     subsample=100,
-#     ax=axs[0],
-#     random_state=0,
-# )
-# axs[0].set_title("Actual vs. Predicted values")
-# PredictionErrorDisplay.from_prediction(
-#     y,
-#     y_pred=cv_pred,
-#     kind="residual_vs_predicted",
-#     subsample=100,
-#     ax=axs[1],
-#     random_state=0,
-# )
-# axs[1].set_title("Residuals vs. Predicted Values")
-# fig.suptitle("Plotting cross-validated prediction")
-# plt.tight_layout()
-# plt.show()
 
 
 # Deleting temporary files
@@ -462,9 +433,9 @@ y_pred = rf_regressor.predict(X_test)
 
 # Predict the Ne value for input population
 rf_prediction = rf_regressor.predict(Z)
-# Output the result
 print(f"\nPrediction of Random Forest Regression Model: {rf_prediction.round(decimals=2)}")
 
+# Calculate confidence interval
 # Get the predictions from each tree for the new data point
 tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
 
