@@ -223,7 +223,7 @@ def processRandomPopulation(x):
     sampleSize = inputFileStatistics.sampleSize
     proc = multiprocessing.Process()
     process_id = os.getpid()
-    # change the intermediate file name by thread id
+    # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
@@ -473,7 +473,7 @@ print("--- %s seconds ---" % (time.time() - start_time))
 ##########################
 # END
 #########################
-# CNN
+# FNN
 #########################
 import copy
 
@@ -490,7 +490,7 @@ from sklearn.preprocessing import StandardScaler
 # X_train = scaler.transform(X_train)
 # X_test = scaler.transform(X_test)
 
-# Convert to 2D PyTorch tensors
+# Convert to PyTorch tensors
 X_train = X_train.astype(np.float32)
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = y_train.astype(np.float32)
