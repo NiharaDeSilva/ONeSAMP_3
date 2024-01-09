@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import time
 from statistics import statisticsClass
+from popSimulator import SimulatePopulations
 import multiprocessing
 import concurrent.futures
 import warnings
@@ -76,7 +77,8 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-mutationRate = 0.000000012
+# mutationRate = 0.000000012
+mutationRate = 1.0
 if (args.r):
     mutationRate = float(args.r)
 
@@ -100,7 +102,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-rangeNe = "%d,%d" % (lowerNe, upperNe)
+# rangeNe = "%d,%d" % (lowerNe, upperNe)
+rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -216,6 +219,8 @@ statistics3 = [0 for x in range(numOneSampTrials)]
 statistics5 = [0 for x in range(numOneSampTrials)]
 statistics4 = [0 for x in range(numOneSampTrials)]
 
+rate = 0.0012
+simulate_populations = SimulatePopulations()
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -226,18 +231,18 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
-        POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-        intermediateFile)
-
-    if (DEBUG):
-        print(cmd)
-
-    returned_value = os.system(cmd)
-
-    if returned_value:
-        print("ERROR:main:Refactor did not run")
-        exit()
+    # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
+    #     POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+    #     intermediateFile)
+    simulate_populations.generate_content(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
+    #
+    # if (DEBUG):
+    #     print(cmd)
+    #
+    # returned_value = os.system(cmd)
+    #
+    # if returned_value:
+    #     print("ERROR:main:Refactor did not run")
 
     refactorFileStatistics = statisticsClass()
 
