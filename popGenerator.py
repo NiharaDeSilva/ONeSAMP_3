@@ -1,0 +1,22 @@
+from popSimulator import SimulatePopulations
+import os
+
+ONESAMP2COAL_MINALLELEFREQUENCY=0.05
+mutationRate=0.0012
+rangeNe=100,500
+theta=0.000048,0.0048
+NeVal=200
+numPOP="00256"
+
+
+outputSampleSizes=(40, 50, 100, 200)
+locis=(40, 80, 160, 320, 1000, 2000, 4000, 8000)
+simulate_populations = SimulatePopulations()
+print(os.getcwd())
+
+for sampleSize in outputSampleSizes:
+    for loci in locis:
+        file_name = f"genePop{sampleSize}x{loci}"
+        path = os.path.join("./inputData/", file_name)
+        simulate_populations.generate_content(sampleSize, loci, NeVal, mutationRate, path)
+
