@@ -275,15 +275,16 @@ try:
 except FileExistsError:
     pass
 
-
-# Parallel process the random populations and add to a list
-with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
-    # As each task completes, put the result in the queue
-    for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
-        try:
-            results_list.append(result)
-        except Exception as e:
-            print(f"Generated an exception: {e}")
+if __name__ == '__main__':
+    multiprocessing.set_start_method('fork')
+    # Parallel process the random populations and add to a list
+    with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
+        # As each task completes, put the result in the queue
+        for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
+            try:
+                results_list.append(result)
+            except Exception as e:
+                print(f"Generated an exception: {e}")
 
 # Write all population stats to a file to pass as input for Rscript
 # with fileALLPOP as result_file:
