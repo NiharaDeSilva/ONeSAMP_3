@@ -70,9 +70,11 @@ class SimulatePopulations:
         with open(file_name, 'w') as file:
             file.write(content)
 
-
     # generate_content(sample_size, loci, neRange, rate, intermediateFile)
-    # generate_content(50, 40, (150,250), 0.0012, "file")
+
+
+# simulate_populations = SimulatePopulations()
+# simulate_populations.generate_content(50, 40, (150,250), 0.0012, "genePop50x40")
 
 
 

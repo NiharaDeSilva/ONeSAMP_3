@@ -17,6 +17,6 @@ print(os.getcwd())
 for sampleSize in outputSampleSizes:
     for loci in locis:
         file_name = f"genePop{sampleSize}x{loci}"
-        path = os.path.join("./inputData/", file_name)
+        path = os.path.join("./data/", file_name)
         simulate_populations.generate_content(sampleSize, loci, NeVal, mutationRate, path)
 
