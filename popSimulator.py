@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 class SimulatePopulations:
-    #
+
     # sample_size=50 #num of individuals
     # loci=40 #num_of_loci
     # effective_population=200
@@ -11,9 +11,12 @@ class SimulatePopulations:
     # neRange = (150,250)
     # intermediateFile = "intermediate"
 
-    def generate_population(self, sample_size, loci, neRange, rate):
+    def simulate_populations(self, sample_size, loci, neRange, rate):
     # Simulate ancestral history and add mutations
-        effective_population =  np.random.uniform(neRange[0],neRange[1])
+        if isinstance(neRange, tuple):
+            effective_population = np.random.uniform(neRange[0],neRange[1])
+        else:
+            effective_population = neRange
         tree_sequence = msprime.sim_ancestry(samples=sample_size, ploidy=2, population_size=effective_population, sequence_length=loci, random_seed=1234)
         tree_sequence = msprime.sim_mutations(tree_sequence, rate=rate, random_seed=5678)
 
@@ -21,7 +24,7 @@ class SimulatePopulations:
         haplotypes = np.array([list(hap) for hap in tree_sequence.haplotypes()])
 
         # Introduce missing data
-        missing_data_proportion = 0.2  # e.g., 10% of the data is missing
+        missing_data_proportion = 0.1  # e.g., 20% of the data is missing
         num_sites = tree_sequence.num_sites
         num_missing = int(num_sites * missing_data_proportion * len(haplotypes))
 
@@ -40,7 +43,7 @@ class SimulatePopulations:
         # print(effective_population)
         return formatted_haplotypes, effective_population
 
-    # Encode haplotypes to
+    # Encode haplotypes
     encoding = {'N': '00', 'A': '01', 'G': '02', 'C': '03', 'T': '04'}
 
     def encode_haplotypes(self, hap):
@@ -49,8 +52,8 @@ class SimulatePopulations:
         return encoded_values
 
     # Convert to genepop format
-    def generate_content(self, sample_size, loci, neRange, rate, file_name):
-        result = self.generate_population(sample_size, loci, neRange, rate)
+    def generate_population_data(self, sample_size, loci, neRange, rate, file_name):
+        result = self.simulate_populations(sample_size, loci, neRange, rate)
         diploid_haplotypes = result[0]
         content = "Generated genotype output\n"
         content += "\n".join(str(i+1) for i in range(loci))
@@ -63,19 +66,21 @@ class SimulatePopulations:
         with open(file_name, 'w') as file:
             file.write(content)
 
-
-    # Write to a file
-    def write_to_file(self, content, sample_size, loci):
-        file_name = f"genePop{sample_size}x{loci}"
+    def generate_input_population(self, sample_size, loci, effective_population, rate, file_name):
+        result = self.simulate_populations(sample_size, loci, effective_population, rate)
+        diploid_haplotypes = result[0]
+        content = "Generated genotype output\n"
+        content += "\n".join(str(i+1) for i in range(loci))
+        content += "\nPop"
+        for i, hap in enumerate(diploid_haplotypes):
+            encoded_haplotypes = self.encode_haplotypes(hap)
+            content += f"\n{i+1} , {encoded_haplotypes}"
         with open(file_name, 'w') as file:
             file.write(content)
 
-    # generate_content(sample_size, loci, neRange, rate, intermediateFile)
 
-
-# simulate_populations = SimulatePopulations()
-# simulate_populations.generate_content(50, 40, (150,250), 0.0012, "genePop50x40")
-
+# population = SimulatePopulations()
+# population.generate_population_data(50, 40, (150,250), 0.0012, "genePop50x40")
 
 
 # Print diploid haplotypes with spaces

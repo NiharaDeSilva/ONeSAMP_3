@@ -234,8 +234,8 @@ def processRandomPopulation(x):
     # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
     #     POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
     #     intermediateFile)
-    simulate_populations.generate_content(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
-    #
+    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
+
     # if (DEBUG):
     #     print(cmd)
     #
@@ -243,7 +243,7 @@ def processRandomPopulation(x):
     #
     # if returned_value:
     #     print("ERROR:main:Refactor did not run")
-
+    # exit()
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
