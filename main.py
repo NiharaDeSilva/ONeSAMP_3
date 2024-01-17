@@ -78,15 +78,15 @@ if (args.m):
     minAlleleFreq = float(args.m)
 
 # mutationRate = 0.000000012
-mutationRate = 1.0
+mutationRate = 0.0012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 150
+lowerNe = 4
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe = 250
+upperNe = 500
 if (args.uNe):
     upperNe = int(args.uNe)
 

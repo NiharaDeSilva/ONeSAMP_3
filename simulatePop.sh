@@ -8,11 +8,11 @@ microsatsOrSNPs=s
 NeVals="00200"
 numPOP="00256"
 
-outputSampleSizes=(40 50 100 200)
-locis=(1000 2000 4000 8000)
+outputSampleSizes=(40 50 100)
+locis=(40 80 160)
 
 for outputSampleSize in "${outputSampleSizes[@]}"; do
   for loci in "${locis[@]}"; do
-      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "./data/genePop${outputSampleSize}x${loci}"
+      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "./exampleData/genePop${outputSampleSize}x${loci}"
   done
 done

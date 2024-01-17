@@ -11,7 +11,7 @@ class SimulatePopulations:
     # neRange = (150,250)
     # intermediateFile = "intermediate"
 
-    def simulate_populations(self, sample_size, loci, neRange, rate):
+    def simulate_populations(self, sample_size, loci, neRange,  rate):
     # Simulate ancestral history and add mutations
         if isinstance(neRange, tuple):
             effective_population = np.random.uniform(neRange[0],neRange[1])
@@ -24,16 +24,18 @@ class SimulatePopulations:
         haplotypes = np.array([list(hap) for hap in tree_sequence.haplotypes()])
 
         # Introduce missing data
-        missing_data_proportion = 0.1  # e.g., 20% of the data is missing
+        missing_data_proportion = 0.0  # e.g., 20% of the data is missing
         num_sites = tree_sequence.num_sites
-        num_missing = int(num_sites * missing_data_proportion * len(haplotypes))
+        num_missing = int(num_sites * missing_data_proportion * len(haplotypes)/2)
+        # num_missing_loci = int(num_sites * loci_missing)
+        # num_missing_individuals = int(len(haplotypes)/2 * individual_missing)
 
         for _ in range(num_missing):
-            # Randomly choose a site and a sample
-            site_index = random.randint(0, num_sites - 1)
-            sample_index = random.randint(0, len(haplotypes) - 1)
-            # Mark this site as missing for this sample
-            haplotypes[sample_index][site_index] = 'N'  # 'N' denotes missing data
+                # Randomly choose a site and a sample
+                site_index = random.randint(0, num_sites - 1)
+                sample_index = random.randint(0, len(haplotypes) - 1)
+                # Mark this site as missing for this sample
+                haplotypes[sample_index][site_index] = 'N'  # 'N' denotes missing data
 
         formatted_haplotypes = []
         for i in range(0, len(haplotypes), 2):
@@ -50,6 +52,24 @@ class SimulatePopulations:
         encoded_values = [self.encoding[char] for char in hap]
         encoded_values = ' '.join([''.join(encoded_values[j:j + 2]) for j in range(0, len(encoded_values), 2)])
         return encoded_values
+
+    # def filter_monomorphic_loci(self, data):
+    #     # Split each sequence into alleles or genetic variants
+    #     sequences = [line.split() for line in data]
+    #     # Transpose the sequences to group alleles at the same position
+    #     transposed_sequences = list(map(list, zip(*sequences)))
+    #     # Check if all individuals in each position have the same allele or genetic variant
+    #     filtered_sequences = []
+    #     for position in transposed_sequences:
+    #         if len(set(position)) > 1:
+    #             filtered_sequences.append(position)
+    #     # Transpose the filtered sequences back to their original format
+    #     filtered_sequences = list(map(list, zip(*filtered_sequences)))
+    #     # Join the filtered sequences back into a string
+    #     filtered_data = '\n'.join([' '.join(sequence) for sequence in filtered_sequences])
+    #     # Output the filtered data
+    #     print(filtered_data)
+    #     return filtered_data
 
     # Convert to genepop format
     def generate_population_data(self, sample_size, loci, neRange, rate, file_name):
@@ -72,15 +92,18 @@ class SimulatePopulations:
         content = "Generated genotype output\n"
         content += "\n".join(str(i+1) for i in range(loci))
         content += "\nPop"
+        result = []
         for i, hap in enumerate(diploid_haplotypes):
             encoded_haplotypes = self.encode_haplotypes(hap)
+            result.append(encoded_haplotypes)
             content += f"\n{i+1} , {encoded_haplotypes}"
         with open(file_name, 'w') as file:
             file.write(content)
 
 
+
 # population = SimulatePopulations()
-# population.generate_population_data(50, 40, (150,250), 0.0012, "genePop50x40")
+# population.generate_input_population(4, 80, 200, 0.0012, "genePop10x80")
 
 
 # Print diploid haplotypes with spaces

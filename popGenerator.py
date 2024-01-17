@@ -9,10 +9,9 @@ NeVal=200
 numPOP="00256"
 
 
-outputSampleSizes=(40, 50, 100, 200)
-locis=(40, 80, 160, 320, 1000, 2000, 4000, 8000)
+outputSampleSizes=(150, 300)
+locis=(80, 160)
 simulate_populations = SimulatePopulations()
-print(os.getcwd())
 
 for sampleSize in outputSampleSizes:
     for loci in locis:
