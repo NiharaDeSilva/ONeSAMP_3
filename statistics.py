@@ -204,10 +204,11 @@ class statisticsClass:
             temp = data[:, i, :]
             # Can be optimized
             # test = (temp == [0,0] + temp == [1,1] + temp == [2,2] + temp == [3,3]).any()
-
-            homoloci = np.sum(np.logical_and(temp[:, 1] == temp[:, 0], temp[:, 1] == temp[0][0],
-                                             temp[:, 0] == temp[0][0]) == True) / sampleSize
-
+            try:
+                homoloci = np.sum(np.logical_and(temp[:, 1] == temp[:, 0], temp[:, 1] == temp[0][0],
+                                           temp[:, 0] == temp[0][0]) == True) / sampleSize
+            except:
+                print("error", homoloci)
             allHomoloci = np.sum(np.count_nonzero((temp[:, np.newaxis, :] == elements).all(axis=2), axis=0)) / sampleSize
             homolociArray.append(allHomoloci)
             currCnt = np.sum(temp == temp[0][0])
