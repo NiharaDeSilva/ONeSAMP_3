@@ -17,8 +17,8 @@ class SimulatePopulations:
             effective_population = np.random.uniform(neRange[0],neRange[1])
         else:
             effective_population = neRange
-        tree_sequence = msprime.sim_ancestry(samples=sample_size, ploidy=2, population_size=effective_population, sequence_length=loci, random_seed=1234)
-        tree_sequence = msprime.sim_mutations(tree_sequence, rate=rate, random_seed=5678)
+        tree_sequence = msprime.sim_ancestry(samples=sample_size, ploidy=2, recombination_rate=1e-8, population_size=effective_population, sequence_length=loci, random_seed=42)
+        tree_sequence = msprime.sim_mutations(tree_sequence, rate=rate, random_seed=42)
 
         # Convert the tree sequence to a matrix of haplotypes
         haplotypes = np.array([list(hap) for hap in tree_sequence.haplotypes()])
@@ -103,7 +103,7 @@ class SimulatePopulations:
 
 
 # population = SimulatePopulations()
-# population.generate_input_population(4, 80, 200, 0.0012, "genePop10x80")
+# population.generate_population_data(50, 20, (4,400), 0.0012, "genePop50x20")
 
 
 # Print diploid haplotypes with spaces
