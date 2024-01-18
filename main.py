@@ -82,11 +82,11 @@ mutationRate = 0.0012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 4
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe = 500
+upperNe = 250
 if (args.uNe):
     upperNe = int(args.uNe)
 
