@@ -9,8 +9,8 @@ NeVal=200
 numPOP="00256"
 
 
-outputSampleSizes=(150, 300)
-locis=(80, 160)
+outputSampleSizes=(50, 100, 200)
+locis=(40, 80, 160, 320, 1000, 2000)
 simulate_populations = SimulatePopulations()
 
 for sampleSize in outputSampleSizes:
