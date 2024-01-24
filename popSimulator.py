@@ -4,19 +4,12 @@ import random
 
 class SimulatePopulations:
 
-    # sample_size=50 #num of individuals
-    # loci=40 #num_of_loci
-    # effective_population=200
-    # rate=0.0012
-    # neRange = (150,250)
-    # intermediateFile = "intermediate"
-
     def simulate_populations(self, sample_size, loci, neRange,  rate):
-    # Simulate ancestral history and add mutations
         if isinstance(neRange, tuple):
             effective_population = np.random.uniform(neRange[0],neRange[1])
         else:
             effective_population = neRange
+    # Simulate ancestral history and add mutations
         tree_sequence = msprime.sim_ancestry(samples=sample_size, ploidy=2, recombination_rate=1e-8, population_size=effective_population, sequence_length=loci, random_seed=42)
         tree_sequence = msprime.sim_mutations(tree_sequence, rate=rate, random_seed=42)
 
@@ -27,8 +20,6 @@ class SimulatePopulations:
         missing_data_proportion = 0.0  # e.g., 20% of the data is missing
         num_sites = tree_sequence.num_sites
         num_missing = int(num_sites * missing_data_proportion * len(haplotypes)/2)
-        # num_missing_loci = int(num_sites * loci_missing)
-        # num_missing_individuals = int(len(haplotypes)/2 * individual_missing)
 
         for _ in range(num_missing):
                 # Randomly choose a site and a sample
@@ -53,25 +44,7 @@ class SimulatePopulations:
         encoded_values = ' '.join([''.join(encoded_values[j:j + 2]) for j in range(0, len(encoded_values), 2)])
         return encoded_values
 
-    # def filter_monomorphic_loci(self, data):
-    #     # Split each sequence into alleles or genetic variants
-    #     sequences = [line.split() for line in data]
-    #     # Transpose the sequences to group alleles at the same position
-    #     transposed_sequences = list(map(list, zip(*sequences)))
-    #     # Check if all individuals in each position have the same allele or genetic variant
-    #     filtered_sequences = []
-    #     for position in transposed_sequences:
-    #         if len(set(position)) > 1:
-    #             filtered_sequences.append(position)
-    #     # Transpose the filtered sequences back to their original format
-    #     filtered_sequences = list(map(list, zip(*filtered_sequences)))
-    #     # Join the filtered sequences back into a string
-    #     filtered_data = '\n'.join([' '.join(sequence) for sequence in filtered_sequences])
-    #     # Output the filtered data
-    #     print(filtered_data)
-    #     return filtered_data
-
-    # Convert to genepop format
+    # Convert simulated population to genepop format and print the effective population
     def generate_population_data(self, sample_size, loci, neRange, rate, file_name):
         result = self.simulate_populations(sample_size, loci, neRange, rate)
         diploid_haplotypes = result[0]
@@ -86,6 +59,7 @@ class SimulatePopulations:
         with open(file_name, 'w') as file:
             file.write(content)
 
+    # Convert simulated population to genepop format - input population
     def generate_input_population(self, sample_size, loci, effective_population, rate, file_name):
         result = self.simulate_populations(sample_size, loci, effective_population, rate)
         diploid_haplotypes = result[0]
@@ -104,6 +78,20 @@ class SimulatePopulations:
 
 # population = SimulatePopulations()
 # population.generate_population_data(50, 20, (4,400), 0.0012, "genePop50x20")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Print diploid haplotypes with spaces

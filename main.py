@@ -415,7 +415,7 @@ for feature, coef in zip(inputStatsList.columns, coefficients):
 # print("\nCross validation scores : ", round(cv_scores[0],2), round(cv_scores[1],2), round(cv_scores[2],2), round(cv_scores[3],2), round(cv_scores[4],2))
 
 
-print("--- %s seconds ---" % (time.time() - start_time))
+print("----- %s seconds -----" % (time.time() - start_time))
 
 
 
@@ -439,25 +439,33 @@ y_pred = rf_regressor.predict(X_test)
 
 # Predict the Ne value for input population
 rf_prediction = rf_regressor.predict(Z)
-print(f"\nPrediction of Random Forest Regression Model: {rf_prediction.round(decimals=2)}")
+print(f"\nPrediction of Random Forest Regression Model:")
+print(rf_prediction.round(decimals=2))
 
 # Calculate confidence interval
 # Get the predictions from each tree for the new data point
 tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
+
+# Calculate median
+median_prediction = np.median(tree_predictions, axis=0)
+print(f"\nMedian Prediction of Random Forest Regression Model: ")
+print(rf_prediction.round(decimals=2))
+
 
 # Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
 lower_bound = np.percentile(tree_predictions, 2.5)
 upper_bound = np.percentile(tree_predictions, 97.5)
 
 # Output the confidence interval
-print(f"95% confidence interval for the new data point: [{lower_bound.round(decimals=2)}, {upper_bound.round(decimals=2)}]")
+print(f"95% confidence interval for the new data point:")
+print(f"{lower_bound.round(decimals=2), upper_bound.round(decimals=2)}")
 
 
 # Using Mean Squared Error to evaluate the model
 mse = mean_squared_error(y_test, y_pred)
 rmse = np.sqrt(mse)
-print(f"\nMean Squared Error: {mse:.2f}")
-print(f"Root Mean Squared Error: {rmse:.2f}")
+# print(f"\nMean Squared Error: {mse:.2f}")
+# print(f"Root Mean Squared Error: {rmse:.2f}")
 
 # Get numerical feature importances
 importances = list(rf_regressor.feature_importances_)
@@ -470,10 +478,10 @@ feature_importances = sorted(feature_importances, key=lambda x: x[1], reverse=Tr
 
 # Print out the feature and importances
 print("\nFeature importance")
-[print('Variable: {:30} Importance: {}'.format(*pair)) for pair in feature_importances]
+[print('Variable: {:30} : {}'.format(*pair)) for pair in feature_importances]
 
 
-print("--- %s seconds ---" % (time.time() - start_time))
+print("----- %s seconds -----" % (time.time() - start_time))
 
 
 ##########################
@@ -482,13 +490,16 @@ print("--- %s seconds ---" % (time.time() - start_time))
 # FNN
 #########################
 import copy
-
+from skorch import NeuralNetRegressor
+from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import tqdm
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import ParameterGrid
+
 
 # Standardizing data
 # scaler = StandardScaler()
@@ -505,83 +516,186 @@ X_test = X_test.astype(np.float32)
 X_test = torch.tensor(X_test, dtype=torch.float32)
 y_test = y_test.astype(np.float32)
 y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
+#
+# Define your hyperparameter grid
+param_grid = {
+    'lr': [0.01, 0.001, 0.0001],  # learning rates
+    'batch_size': [10, 20, 50],  # batch sizes
+    'dropout_rate': [0.1, 0.2, 0.5]  # dropout rates
+}
 
-# Define the model
-model = nn.Sequential(
-    nn.Linear(5, 20),
-    nn.ReLU(),
-    nn.Linear(20, 10),
-    nn.ReLU(),
-    nn.Linear(10, 5),
-    nn.ReLU(),
-    nn.Linear(5, 1)
-)
+# Define a function for the model setup
+def create_model(dropout_rate):
+    model = nn.Sequential(
+        nn.Linear(5, 20),
+        nn.ReLU(),
+        nn.Linear(20, 10),
+        nn.ReLU(),
+        nn.Linear(10, 5),
+        nn.ReLU(),
+        nn.Linear(5, 1),
+        nn.Dropout(dropout_rate)
+    )
+    return model
 
-# loss function and optimizer
-loss_fn = nn.MSELoss()  # mean square error
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+# Function to train and evaluate the model
+def train_evaluate(params):
+    model = create_model(params['dropout_rate'])
+    optimizer = optim.Adam(model.parameters(), lr=params['lr'])
+    loss_fn = nn.MSELoss()
+    best_mse = np.inf
+    best_weights = None
 
-n_epochs = 100   # number of epochs to run
-batch_size = 10  # size of each batch
-batch_start = torch.arange(0, len(X_train), batch_size)
-
-# Hold the best model
-best_mse = np.inf   # init to infinity
-best_weights = None
-history = []
-
-for epoch in range(n_epochs):
-    model.train()
-    with tqdm.tqdm(batch_start, unit="batch", mininterval=0, disable=True) as bar:
-        bar.set_description(f"Epoch {epoch}")
-        for start in bar:
-            # take a batch
-            X_batch = X_train[start:start+batch_size]
-            y_batch = y_train[start:start+batch_size]
-            # forward pass
+    for epoch in range(n_epochs):
+        model.train()
+        for start in range(0, len(X_train), params['batch_size']):
+            X_batch = X_train[start:start + params['batch_size']]
+            y_batch = y_train[start:start + params['batch_size']]
             y_pred = model(X_batch)
             loss = loss_fn(y_pred, y_batch)
-            # backward pass
             optimizer.zero_grad()
             loss.backward()
-            # update weights
             optimizer.step()
-            # print progress
-            bar.set_postfix(mse=float(loss))
-    # evaluate accuracy at end of each epoch
-    model.eval()
-    y_pred = model(X_test)
-    mse = loss_fn(y_pred, y_test)
-    mse = float(mse)
-    history.append(mse)
-    if mse < best_mse:
-        best_mse = mse
-        best_weights = copy.deepcopy(model.state_dict())
 
-# restore model and return best accuracy
-model.load_state_dict(best_weights)
-print("MSE: %.2f" % best_mse)
-print("RMSE: %.2f" % np.sqrt(best_mse))
-# plt.plot(history)
-# plt.show()
+        model.eval()
+        y_pred = model(X_test)
+        mse = loss_fn(y_pred, y_test).item()
+        if mse < best_mse:
+            best_mse = mse
+            best_weights = copy.deepcopy(model.state_dict())
 
-# model.eval()
-# with torch.no_grad():
-#     # Test out inference with 5 samples
-#     for i in range(5):
-#         X_sample = X_test[i: i+1]
-#         # X_sample = scaler.transform(X_sample)
-#         X_sample = torch.tensor(X_sample, dtype=torch.float32)
-#         y_pred = model(X_sample)
-#         print(f"{X_test[i]} -> {y_pred[0].numpy()} (expected {y_test[i].numpy()})")
+    return best_mse, best_weights
+
+# Grid search
+n_epochs = 100
+best_overall_mse = np.inf
+best_overall_params = None
+best_model_weights = None
+
+for params in ParameterGrid(param_grid):
+    mse, weights = train_evaluate(params)
+    if mse < best_overall_mse:
+        best_overall_mse = mse
+        best_overall_params = params
+        best_model_weights = weights
+
+# Load the best model weights
+model = create_model(best_overall_params['dropout_rate'])
+print(best_overall_params)
+model.load_state_dict(best_model_weights)
+
+# Set the model to evaluation mode
+model.eval()
+test_predictions = model(X_test.float()).detach().numpy()
+
+# # Calculate the median
+# median_value = np.median(test_predictions)
+#
+# # Calculate the 95% confidence interval
+# confidence_interval = stats.norm.interval(0.95, loc=np.mean(test_predictions), scale=np.std(test_predictions))
+#
+# print("\nMedian Prediction of Feedforward Neural Network:")
+# print(median_value)
+# print("\n95% Confidence Interval:")
+# print(confidence_interval)
 
 
-model.eval()  # Set the model to evaluation mode
 Z = Z.astype(np.float32)
+
 with torch.no_grad():
     input_data = torch.tensor(Z, dtype=torch.float32)  # Convert new data to a PyTorch tensor
     prediction = model(input_data)  # Forward pass to make predictions
     predicted_value = prediction.item()  # Extract the predicted value (assuming a single output)
 
-print(f"\nPrediction of Feedforward Neural Network Model: {round(predicted_value,2)}")
+print(f"\nPrediction of Feedforward Neural Network Model:")
+print(round(predicted_value,2))
 
+
+# summarize results
+# print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+# means = grid_result.cv_results_['mean_test_score']
+# stds = grid_result.cv_results_['std_test_score']
+# params = grid_result.cv_results_['params']
+# for mean, stdev, param in zip(means, stds, params):
+#     print("%f (%f) with: %r" % (mean, stdev, param))
+
+# print("\nMSE: %.2f" % best_mse)
+# print("RMSE: %.2f" % np.sqrt(best_mse))
+
+# print("----- %s seconds -----" % (time.time() - start_time))
+
+#
+# class CustomFNN(nn.Module):
+#     def __init__(self, n_neurons=10):
+#         super(CustomFNN, self).__init__()
+#         self.layer = nn.Linear(5, n_neurons)
+#         self.act = nn.ReLU()
+#         # self.dropout = nn.Dropout(0.1)
+#         self.output = nn.Linear(n_neurons, 1)
+#         self.prob = nn.Sigmoid()
+#         self.weight_constraint = 2.0
+#         # # manually init weights
+#         # init.kaiming_uniform_(self.layer.weight)
+#         # init.kaiming_uniform_(self.output.weight)
+#
+#     def forward(self, x):
+#         # maxnorm weight before actual forward pass
+#         with torch.no_grad():
+#             norm = self.layer.weight.norm(2, dim=0, keepdim=True).clamp(min=self.weight_constraint / 2)
+#             desired = torch.clamp(norm, max=self.weight_constraint)
+#             self.layer.weight *= (desired / norm)
+#         # actual forward pass
+#         x = self.act(self.layer(x))
+#         # x = self.dropout(x)
+#         x = self.prob(self.output(x))
+#         return x
+#
+#     # def apply_weight_constraint(self):
+#     #     # Apply weight constraint to each layer if needed
+#     #     if self.weight_constraint is not None:
+#     #         for layer in [self.layer1, self.layer2, self.layer3, self.output]:
+#     #             nn.utils.clip_grad_norm_(layer.parameters(), self.weight_constraint)
+#
+# # GridSearchCV using skorch
+# model = NeuralNetRegressor(
+#     module=CustomFNN,
+#     criterion=nn.MSELoss,
+#     optimizer=torch.optim.Adam,
+#     lr=0.001,
+#     max_epochs=100,
+#     batch_size=64,
+#     verbose=0
+# )
+#
+# param_grid = {
+#     'module__n_neurons': [1, 5, 10, 15, 20, 25, 30]
+# }
+#
+# grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3)
+# grid_result = grid.fit(X_train, y_train)
+#
+#
+# # summarize results
+# print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+# means = grid_result.cv_results_['mean_test_score']
+# stds = grid_result.cv_results_['std_test_score']
+# params = grid_result.cv_results_['params']
+# for mean, stdev, param in zip(means, stds, params):
+#     print("%f (%f) with: %r" % (mean, stdev, param))
+
+
+# Set the model to evaluation mode
+# fnn = CustomFNN()
+# fnn.eval()
+# test_predictions = fnn(X_test.float()).detach().numpy()
+#
+# # Calculate the median
+# median_value = np.median(test_predictions)
+#
+# # Calculate the 95% confidence interval
+# confidence_interval = stats.norm.interval(0.95, loc=np.mean(test_predictions), scale=np.std(test_predictions))
+#
+# print("\nMedian Prediction of Feedforward Neural Network:")
+# print(median_value)
+# print("\n95% Confidence Interval:")
+# print(confidence_interval)
