@@ -14,6 +14,7 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 
 echo "Running plot script on multiple CPU cores"
 
+
 folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data"
 output="/blue/boucher/suhashidesilva/ONeSAMP_3/output"
 
@@ -27,5 +28,8 @@ for file in "$folder"/*; do
         echo "Processed $file and saved output to $output_file"
     fi
 done
+
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop200x80 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/genePop200x80.out
+
 
 date
