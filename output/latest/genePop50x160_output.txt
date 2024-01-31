@@ -1,0 +1,31 @@
+
+Prediction of Linear Regression Model: [398.03]
+95% confidence interval: [345.29, 450.78]
+
+Coefficients for each feature:
+Variable: Emean_exhyt: 82.19
+Variable: Fix_index: 7.41
+Variable: Mlocus_homozegosity_mean: 2.96
+Variable: Mlocus_homozegosity_variance: -13.76
+Variable: Gametic_disequilibrium: 860.57
+----- 36.05792951583862 seconds -----
+
+Prediction of Random Forest Regression Model:
+[242.53]
+
+Median Prediction of Random Forest Regression Model: 
+[242.53]
+95% confidence interval for the new data point:
+(208.56, 249.75)
+
+Feature importance
+Variable: Fix_index                      : 0.33
+Variable: Mlocus_homozegosity_variance   : 0.29
+Variable: Gametic_disequilibrium         : 0.23
+Variable: Mlocus_homozegosity_mean       : 0.08
+Variable: Emean_exhyt                    : 0.07
+----- 42.36746597290039 seconds -----
+{'batch_size': 50, 'dropout_rate': 0.1, 'lr': 0.01}
+
+Prediction of Feedforward Neural Network Model:
+370.03
