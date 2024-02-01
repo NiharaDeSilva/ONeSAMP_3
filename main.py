@@ -78,15 +78,15 @@ if (args.m):
     minAlleleFreq = float(args.m)
 
 # mutationRate = 0.000000012
-mutationRate = 0.0012
+mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 150
+lowerNe = 50
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe = 250
+upperNe =400
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -219,7 +219,7 @@ statistics3 = [0 for x in range(numOneSampTrials)]
 statistics5 = [0 for x in range(numOneSampTrials)]
 statistics4 = [0 for x in range(numOneSampTrials)]
 
-rate = 0.0012
+rate = 0.012
 simulate_populations = SimulatePopulations()
 
 # Generate random populations and calculate summary statistics
@@ -428,60 +428,60 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # ##########################
 # # RANDOM FOREST REGRESSION
 # ##########################
-# # Initialize the Random Forest Regressor
-# rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
-#
-# # Train the model on the training data
-# rf_regressor.fit(X_train, y_train)
-#
-# # Make predictions on test data
-# y_pred = rf_regressor.predict(X_test)
-#
-# # Predict the Ne value for input population
-# rf_prediction = rf_regressor.predict(Z)
-# print(f"\nPrediction of Random Forest Regression Model:")
-# print(rf_prediction.round(decimals=2))
-#
-# # Calculate confidence interval
-# # Get the predictions from each tree for the new data point
-# tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
-#
-# # Calculate median
-# median_prediction = np.median(tree_predictions, axis=0)
-# print(f"\nMedian Prediction of Random Forest Regression Model: ")
-# print(rf_prediction.round(decimals=2))
-#
-#
-# # Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
-# lower_bound = np.percentile(tree_predictions, 2.5)
-# upper_bound = np.percentile(tree_predictions, 97.5)
-#
-# # Output the confidence interval
-# print(f"95% confidence interval for the new data point:")
-# print(f"{lower_bound.round(decimals=2), upper_bound.round(decimals=2)}")
-#
-#
-# # Using Mean Squared Error to evaluate the model
-# mse = mean_squared_error(y_test, y_pred)
-# rmse = np.sqrt(mse)
-# # print(f"\nMean Squared Error: {mse:.2f}")
-# # print(f"Root Mean Squared Error: {rmse:.2f}")
-#
-# # Get numerical feature importances
-# importances = list(rf_regressor.feature_importances_)
-#
-# # List of tuples with variable and importance
-# feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(inputStatsList.columns, importances)]
-#
-# # Sort the feature importances by most important first
-# feature_importances = sorted(feature_importances, key=lambda x: x[1], reverse=True)
-#
-# # Print out the feature and importances
-# print("\nFeature importance")
-# [print('Variable: {:30} : {}'.format(*pair)) for pair in feature_importances]
-#
-#
-# print("----- %s seconds -----" % (time.time() - start_time))
+# Initialize the Random Forest Regressor
+rf_regressor = RandomForestRegressor(n_estimators=1000, random_state=42)
+
+# Train the model on the training data
+rf_regressor.fit(X_train, y_train)
+
+# Make predictions on test data
+y_pred = rf_regressor.predict(X_test)
+
+# Predict the Ne value for input population
+rf_prediction = rf_regressor.predict(Z)
+print(f"\nPrediction of Random Forest Regression Model:")
+print(rf_prediction.round(decimals=2))
+
+# Calculate confidence interval
+# Get the predictions from each tree for the new data point
+tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
+
+# Calculate median
+median_prediction = np.median(tree_predictions, axis=0)
+print(f"\nMedian Prediction of Random Forest Regression Model: ")
+print(rf_prediction.round(decimals=2))
+
+
+# Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
+lower_bound = np.percentile(tree_predictions, 2.5)
+upper_bound = np.percentile(tree_predictions, 97.5)
+
+# Output the confidence interval
+print(f"95% confidence interval for the new data point:")
+print(f"{lower_bound.round(decimals=2), upper_bound.round(decimals=2)}")
+
+
+# Using Mean Squared Error to evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+# print(f"\nMean Squared Error: {mse:.2f}")
+# print(f"Root Mean Squared Error: {rmse:.2f}")
+
+# Get numerical feature importances
+importances = list(rf_regressor.feature_importances_)
+
+# List of tuples with variable and importance
+feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(inputStatsList.columns, importances)]
+
+# Sort the feature importances by most important first
+feature_importances = sorted(feature_importances, key=lambda x: x[1], reverse=True)
+
+# Print out the feature and importances
+print("\nFeature importance")
+[print('Variable: {:30} : {}'.format(*pair)) for pair in feature_importances]
+
+
+print("----- %s seconds -----" % (time.time() - start_time))
 
 
 ##########################
@@ -517,6 +517,8 @@ X_test = X_test.astype(np.float32)
 X_test = torch.tensor(X_test, dtype=torch.float32)
 y_test = y_test.astype(np.float32)
 y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
+Z = Z.astype(np.float32)
+Z = torch.tensor(Z, dtype=torch.float32)
 
 #
 # Define your hyperparameter grid
@@ -639,7 +641,7 @@ from sklearn.metrics import mean_squared_error
 
 
 class Regressor(nn.Module):
-    def __init__(self, hidden_units=10, dropout_rate=0.0, activation=nn.ReLU):
+    def __init__(self, hidden_units=30, dropout_rate=0.0, activation=nn.ReLU):
         super(Regressor, self).__init__()
 
         self.first_layer = nn.Linear(X_train.shape[1], hidden_units)
@@ -649,7 +651,7 @@ class Regressor(nn.Module):
         self.final_layer = nn.Linear(2*hidden_units, 1)
         self.activation = activation()
 
-    def forward(self, x_batch):
+    def forward(self, x_batch=16):
         X = self.first_layer(x_batch)
         X = self.activation(X)
         X = self.dropout1(X)
@@ -664,43 +666,102 @@ class Regressor(nn.Module):
 skorch_regressor = NeuralNetRegressor(
     module=Regressor,
     optimizer=optim.Adam,
-    max_epochs=500,
+    max_epochs=300,
     verbose=0
 )
 
 # Define hyperparameters for grid search
-param_grid = {
-    'module__hidden_units': [10, 20, 30],  # Number of neurons in the hidden layer
-    'module__dropout_rate': [0.0, 0.2, 0.4],  # Dropout rates
-    'module__activation': [nn.ReLU, nn.ELU, nn.LeakyReLU],  # Activation functions
-    'max_epochs': [100, 200, 300],  # Number of training epochs
-    'batch_size': [16, 32, 64],  # Batch size
-    'lr': [0.001, 0.01, 0.1],  # Learning rate
-    'optimizer': [optim.Adam, optim.SGD, optim.RMSprop]  # Optimization algorithms
-}
+# param_grid = {
+   # 'module__hidden_units': [10, 20, 30],  # Number of neurons in the hidden layer
+    # 'module__dropout_rate': [0.0, 0.2, 0.4],  # Dropout rates
+    # 'module__activation': [nn.ReLU, nn.ELU, nn.LeakyReLU],  # Activation functions
+    #'max_epochs': [100, 200, 300],  # Number of training epochs
+   # 'batch_size': [16, 32, 64],  # Batch size
+   # 'lr': [0.001, 0.01, 0.1],  # Learning rate
+    # 'optimizer': [optim.Adam, optim.SGD, optim.RMSprop]  # Optimization algorithms
+# }
 
 # Create a GridSearchCV object to tune hyperparameters
-grid_search = GridSearchCV(skorch_regressor, param_grid, cv=3, scoring='neg_mean_squared_error', verbose=2)
+# grid_search = GridSearchCV(skorch_regressor, param_grid, cv=3, scoring='neg_mean_squared_error', verbose=2)
 
 # Fit the grid search to your data
-grid_search.fit(X_train, y_train)
+# grid_search.fit(X_train, y_train)
+skorch_regressor.fit(X_train, y_train)
 
 # Print the best hyperparameters and corresponding scores
-print("Best Parameters: ", grid_search.best_params_)
-print("Best Score (Negative MSE): ", grid_search.best_score_)
+# print("Best Parameters: ", grid_search.best_params_)
+# print("Best Score (Negative MSE): ", grid_search.best_score_)
 
 # Get the best model from the grid search
-best_model = grid_search.best_estimator_
+# best_model = grid_search.best_estimator_
 
 # Use the best model for predictions
-y_preds = best_model.predict(X_test)
+# y_preds = best_model.predict(X_test)
+# new_prediction = best_model.predict(Z)
+y_preds = skorch_regressor.predict(X_test)
+prediction = skorch_regressor.predict(Z)
 
-# Evaluate the best model
-mse = mean_squared_error(y_test, y_preds)
-r2 = r2_score(y_test, y_preds)
 
-print("Test MSE:", mse)
-print("Test R^2:", r2)
+# Load your trained model weights (replace 'your_model.pth' with your model's file path)
+# best_model.initialize()
+# best_model.load_params(f_params='your_model.pth')
+
+# Number of Monte Carlo dropout samples
+n_samples = 1000
+
+# Initialize an array to store predictions from each dropout sample
+dropout_predictions = np.zeros(n_samples)
+
+# Enable evaluation mode and dropout during prediction
+# best_model.module_.eval()
+# best_model.module_.dropout1.train()
+# best_model.module_.dropout2.train()
+skorch_regressor.module_.eval()
+skorch_regressor.module_.dropout1.train()
+skorch_regressor.module_.dropout2.train()
+
+# Perform Monte Carlo dropout to generate multiple predictions
+for i in range(n_samples):
+    # Make predictions on the new data point
+    with torch.no_grad():
+        prediction = skorch_regressor.module_(Z).item()
+        dropout_predictions[i] = prediction
+
+# Calculate the mean and standard deviation of the dropout predictions
+prediction_mean = np.mean(dropout_predictions)
+prediction_std = np.std(dropout_predictions)
+
+# Set the confidence level (e.g., 95%)
+confidence_level = 0.95
+
+# Calculate the lower and upper bounds of the confidence interval
+alpha = (1 - confidence_level) / 2
+lower_bound = prediction_mean - prediction_std * 1.96  # Using Z-score for 95% CI
+upper_bound = prediction_mean + prediction_std * 1.96
+
+print("Prediction:", prediction)
+print("Mean Prediction:", prediction_mean)
+print("Prediction Standard Deviation:", prediction_std)
+print("95% Confidence Interval: ({}, {})".format(lower_bound, upper_bound))
+
+
+# # Evaluate the best model
+# mse = mean_squared_error(y_test, y_preds)
+# r2 = r2_score(y_test, y_preds)
+#
+# print("Test MSE:", mse)
+# print("Test R^2:", r2)
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # Fit the grid search to your data

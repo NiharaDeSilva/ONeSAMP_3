@@ -10,14 +10,14 @@ class SimulatePopulations:
         else:
             effective_population = neRange
     # Simulate ancestral history and add mutations
-        tree_sequence = msprime.sim_ancestry(samples=sample_size, model=msprime.DiscreteTimeWrightFisher(duration=6), ploidy=2, recombination_rate=1e-8, population_size=effective_population, sequence_length=loci, random_seed=42)
-        tree_sequence = msprime.sim_mutations(tree_sequence, rate=rate, random_seed=42)
+        tree_sequence = msprime.sim_ancestry(samples=sample_size, model="dtwf", ploidy=2, recombination_rate=1e-8, population_size=effective_population, sequence_length=loci, random_seed=42)
+        tree_sequence = msprime.sim_mutations(tree_sequence, start_time=2, end_time=8, rate=rate, random_seed=42)
 
         # Convert the tree sequence to a matrix of haplotypes
         haplotypes = np.array([list(hap) for hap in tree_sequence.haplotypes()])
 
         # Introduce missing data
-        missing_data_proportion = 0.1  # e.g., 10% of the data is missing
+        missing_data_proportion = 0.0  # e.g., 10% of the data is missing
         num_sites = tree_sequence.num_sites
         num_missing = int(num_sites * missing_data_proportion * len(haplotypes)/2)
 
