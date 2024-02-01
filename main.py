@@ -82,11 +82,11 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 50
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe =400
+upperNe =250
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -419,10 +419,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 #
 #
 #
-# # Deleting temporary files
-# # delete1 = "rm " + inputPopStats
-# # delete_INPUTPOP = os.system(delete1)
-# #
+# Deleting temporary files
+delete1 = "rm " + inputPopStats
+delete_INPUTPOP = os.system(delete1)
+
 # # delete2 = "rm " + allPopStats
 # # delete_ALLPOP = os.system(delete2)
 # ##########################
@@ -451,7 +451,6 @@ median_prediction = np.median(tree_predictions, axis=0)
 print(f"\nMedian Prediction of Random Forest Regression Model: ")
 print(rf_prediction.round(decimals=2))
 
-
 # Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
 lower_bound = np.percentile(tree_predictions, 2.5)
 upper_bound = np.percentile(tree_predictions, 97.5)
@@ -459,7 +458,6 @@ upper_bound = np.percentile(tree_predictions, 97.5)
 # Output the confidence interval
 print(f"95% confidence interval for the new data point:")
 print(f"{lower_bound.round(decimals=2), upper_bound.round(decimals=2)}")
-
 
 # Using Mean Squared Error to evaluate the model
 mse = mean_squared_error(y_test, y_pred)
@@ -501,14 +499,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import ParameterGrid
 
 
-# Standardizing data
-# scaler = StandardScaler()
-# scaler.fit(X_train)
-# X_train = scaler.transform(X_train)
-# X_test = scaler.transform(X_test)
-
 # Convert to PyTorch tensors
-
 X_train = X_train.astype(np.float32)
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = y_train.astype(np.float32)
@@ -520,7 +511,6 @@ y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
 Z = Z.astype(np.float32)
 Z = torch.tensor(Z, dtype=torch.float32)
 
-#
 # Define your hyperparameter grid
 # param_grid = {
 #     'layer_size': [10, 20, 40, 60, 80, 100],
@@ -528,7 +518,7 @@ Z = torch.tensor(Z, dtype=torch.float32)
 #     'batch_size': [10, 20, 50],  # batch sizes
 #     'dropout_rate': [0.1, 0.2, 0.5]  # dropout rates
 # }
-#
+
 # # Define a function for the model setup
 # def create_model(dropout_rate):
 #     model = nn.Sequential(
@@ -631,7 +621,7 @@ Z = torch.tensor(Z, dtype=torch.float32)
 
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
-
+from sklearn.model_selection import cross_val_score, KFold
 from skorch import NeuralNetRegressor
 from sklearn.pipeline import Pipeline
 from torch import optim
@@ -641,7 +631,7 @@ from sklearn.metrics import mean_squared_error
 
 
 class Regressor(nn.Module):
-    def __init__(self, hidden_units=30, dropout_rate=0.0, activation=nn.ReLU):
+    def __init__(self, hidden_units=10, dropout_rate=0.0, activation=nn.ELU):
         super(Regressor, self).__init__()
 
         self.first_layer = nn.Linear(X_train.shape[1], hidden_units)
@@ -701,7 +691,6 @@ skorch_regressor.fit(X_train, y_train)
 y_preds = skorch_regressor.predict(X_test)
 prediction = skorch_regressor.predict(Z)
 
-
 # Load your trained model weights (replace 'your_model.pth' with your model's file path)
 # best_model.initialize()
 # best_model.load_params(f_params='your_model.pth')
@@ -739,22 +728,25 @@ alpha = (1 - confidence_level) / 2
 lower_bound = prediction_mean - prediction_std * 1.96  # Using Z-score for 95% CI
 upper_bound = prediction_mean + prediction_std * 1.96
 
-print("Prediction:", prediction)
-print("Mean Prediction:", prediction_mean)
+print("\nPrediction:")
+print(f"{prediction: .2f}")
+print("Mean Prediction:")
+print(f"{prediction_mean: .2f}")
 print("Prediction Standard Deviation:", prediction_std)
-print("95% Confidence Interval: ({}, {})".format(lower_bound, upper_bound))
+print("95% Confidence Interval:")
+print(f'{lower_bound: .2f},{upper_bound:.2f}')
 
 
-# # Evaluate the best model
-# mse = mean_squared_error(y_test, y_preds)
-# r2 = r2_score(y_test, y_preds)
-#
-# print("Test MSE:", mse)
-# print("Test R^2:", r2)
+# Evaluate the best model
+mse = mean_squared_error(y_test, y_preds)
+r2 = r2_score(y_test, y_preds)
 
+print("\nTest MSE:")
+print(mse)
+print("Test R^2:")
+print(r2)
 
-
-
+print("----- %s seconds -----" % (time.time() - start_time))
 
 
 
