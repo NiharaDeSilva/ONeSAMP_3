@@ -82,11 +82,15 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 150
+lowerNe = 50
 if (args.lNe):
     lowerNe = int(args.lNe)
 
+<<<<<<< HEAD
 upperNe =250
+=======
+upperNe = 400
+>>>>>>> 1241f13 (output files)
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -429,7 +433,7 @@ delete_INPUTPOP = os.system(delete1)
 # # RANDOM FOREST REGRESSION
 # ##########################
 # Initialize the Random Forest Regressor
-rf_regressor = RandomForestRegressor(n_estimators=1000, random_state=42)
+rf_regressor = RandomForestRegressor(n_estimators=10000, random_state=42)
 
 # Train the model on the training data
 rf_regressor.fit(X_train, y_train)
@@ -938,6 +942,7 @@ print(f"{confidence_interval.round(2)}")
 # #
 # # # You can also access the best model with grid_search.best_estimator_
 # # best_model = grid.best_estimatorMSE: %.2f" % np.sqrt(best_mse))
+
 
 print("----- %s seconds -----" % (time.time() - start_time))
 

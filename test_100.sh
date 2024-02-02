@@ -19,15 +19,16 @@ folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data_wm"
 output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/latest"
 
 # Iterate through the files in the folder
-#for file in "$folder"/*; do
-   # if [ -f "$file" ]; then
-      #  filename=$(basename -- "$file")
-     #   filename_no_extension="${filename%.*}"
-    #    output_file="$output/${filename_no_extension}_output.txt"
-   #     python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o "$file" > "$output_file"
-  #      echo "Processed $file and saved output to $output_file"
- #   fi
-#done
+for file in "$folder"/*; do
+    if [ -f "$file" ]; then
+        filename=$(basename -- "$file")
+        filename_no_extension="${filename%.*}"
+        output_file="$output/${filename_no_extension}"
+        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o "$file" > "$output_file"
+        echo "Processed $file and saved output to $output_file"
+    fi
+done
+
 
 python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data_wm/genePop200x40 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/tuning/genePop200x40.out
 python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data_wm/genePop100x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/tuning/genePop100x320.out
