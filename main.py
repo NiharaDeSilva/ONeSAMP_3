@@ -82,15 +82,11 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 50
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-<<<<<<< HEAD
 upperNe =250
-=======
-upperNe = 400
->>>>>>> 1241f13 (output files)
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -497,9 +493,9 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # FNN
 #########################
 import copy
-from skorch import NeuralNetRegressor
-from sklearn.model_selection import GridSearchCV
-import matplotlib.pyplot as plt
+#from skorch import NeuralNetRegressor
+#from sklearn.model_selection import GridSearchCV
+#import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -618,8 +614,8 @@ absolute_errors = np.abs(y_pred_np - y_test_np)
 mae = np.mean(absolute_errors)
 print(f"MAE: {mae:.2f}")
 # ##########################
-plt.plot(history)
-plt.show()
+#plt.plot(history)
+#plt.show()
 
 model.eval()
 # with torch.no_grad():
