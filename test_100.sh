@@ -15,8 +15,8 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 echo "Running plot script on multiple CPU cores"
 
 
-folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data_wm"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/latest"
+folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V1"
 
 # Iterate through the files in the folder
 for file in "$folder"/*; do
@@ -30,8 +30,8 @@ for file in "$folder"/*; do
 done
 
 
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data_wm/genePop200x40 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/tuning/genePop200x40.out
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data_wm/genePop100x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/tuning/genePop100x320.out
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data_wm/genePop200x40 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V1/genePop200x40.out
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data_wm/genePop100x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V1/genePop100x320.out
 
 
 
