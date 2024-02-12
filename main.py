@@ -503,6 +503,8 @@ import tqdm
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import ParameterGrid
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
 
 # Convert to PyTorch tensors
 X_train = X_train.astype(np.float32)
@@ -518,14 +520,14 @@ X_test = X_test.astype(np.float32)
 # X_test = scaler.transform(X_test_raw)
 
 
-X_test = torch.tensor(X_test, dtype=torch.float32)
-X_train = torch.tensor(X_train, dtype=torch.float32)
+X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
+X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
 y_train = y_train.astype(np.float32)
-y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
+y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1).to(device)
 y_test = y_test.astype(np.float32)
-y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
+y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1).to(device)
 Z = Z.astype(np.float32)
-Z = torch.tensor(Z, dtype=torch.float32)
+Z = torch.tensor(Z, dtype=torch.float32).to(device)
 
 # # Convert to 2D PyTorch tensors
 # X_train = torch.tensor(X_train, dtype=torch.float32)
@@ -547,6 +549,7 @@ model = nn.Sequential(
     nn.ReLU(),
     nn.Linear(5, 1)
 )
+model.to(device)
 
 # loss function and optimizer
 loss_fn = nn.MSELoss()  # mean square error
