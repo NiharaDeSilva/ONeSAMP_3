@@ -350,10 +350,18 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 model = LinearRegression()
 result = model.fit(X_train, y_train)
 
+print(f"\n-----------------LINEAR REGRESSION------------------")
+
 #Predict for Test values
 y_pred = result.predict(X_test)
 
-print(f"\n-----------------LINEAR REGRESSION------------------")
+# Calculate errors
+errors = y_pred - y_test
+# Find the minimum and maximum error to get the range
+error_max = errors.max()
+error_min = errors.min()
+print( f"{error_min}, {error_max}")
+
 # Compute MSE, RMSE, and MAE for the test set
 mse_test = mean_squared_error(y_test, y_pred)
 rmse_test = np.sqrt(mse_test)
@@ -434,13 +442,19 @@ rf_regressor = RandomForestRegressor(n_estimators=10000, random_state=42)
 # Train the model on the training data
 rf_regressor.fit(X_train, y_train)
 
+print(f"\n-----------------RANDOM FOREST------------------")
+
 # Make predictions on test data
 y_pred = rf_regressor.predict(X_test)
+# Calculate errors
+errors = y_pred - y_test
+# Find the minimum and maximum error to get the range
+error_max = errors.max()
+error_min = errors.min()
+print( f"{error_min}, {error_max}")
 
 # Predict the Ne value for input population
 rf_prediction = rf_regressor.predict(Z)
-
-print(f"\n-----------------RANDOM FOREST------------------")
 
 # Using Mean Squared Error to evaluate the model
 mse = mean_squared_error(y_test, y_pred)
@@ -593,25 +607,24 @@ for epoch in range(n_epochs):
         best_weights = copy.deepcopy(model.state_dict())
 
 print(f"\n-----------------NEURAL NETWORK------------------")
+# Calculate errors
+errors = y_pred - y_test
+# Find the minimum and maximum error to get the range
+error_max = errors.max()
+error_min = errors.min()
+print( f"{error_min}, {error_max}")
 
 # restore model and return best accuracy
 model.load_state_dict(best_weights)
 print("MSE: %.2f" % best_mse)
 print("RMSE: %.2f" % np.sqrt(best_mse))
 
-# Convert tensors to numpy arrays if they aren't already
-if not isinstance(y_test, np.ndarray):
-    y_test_np = y_test.numpy()
-else:
-    y_test_np = y_test
-
-if not isinstance(y_pred, np.ndarray):
-    y_pred_np = y_pred.detach().numpy()  # Ensure y_pred is detached from the computation graph
-else:
-    y_pred_np = y_pred
+# Convert tensors to numpy arrays
+y_test = y_test.numpy()
+y_pred = y_pred.detach().numpy()  # Ensure y_pred is detached from the computation graph
 
 # Calculate absolute errors
-absolute_errors = np.abs(y_pred_np - y_test_np)
+absolute_errors = np.abs(y_pred - y_test)
 
 # Compute Mean Absolute Error (MAE)
 mae = np.mean(absolute_errors)
@@ -638,7 +651,7 @@ predictions = np.zeros(n_simulations)
 
 # Standard deviation of noise to add to Z for simulations
 # Adjust the scale based on your expected input variability
-noise_std = 0.05 * np.std(Z.numpy(), axis=0)
+noise_std = 0.1 * np.std(Z.numpy(), axis=0)
 
 for i in range(n_simulations):
     # Add random noise to Z
