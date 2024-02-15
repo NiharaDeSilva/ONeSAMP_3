@@ -3,10 +3,14 @@
 #SBATCH --mail-type=ALL          # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=suhashi.desilva@gmail.com     # Where to send mail
 #SBATCH --ntasks=1		      # Number of tasks
+#SBATCH --gpus-per-task=1
 #SBATCH --cpus-per-task=64	      # Number of cores per task
-#SBATCH --mem=10gb                     # Job memory request
-#SBATCH --time=24:00:00               # Time limit hrs:min:sec
+#SBATCH --mem=50gb                     # Job memory request
+#SBATCH --time=04:00:00               # Time limit hrs:min:sec
+#SBATCH --partition=hpg-ai
 #SBATCH --output=serial_test_%j.log   # Standard output and error log
+#SBATCH --array=6-6.
+
 pwd; hostname; date
 
 module load R/4.1
@@ -16,7 +20,7 @@ echo "Running plot script on multiple CPU cores"
 
 
 folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V1"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V5"
 
 # Iterate through the files in the folder
 for file in "$folder"/*; do
@@ -24,7 +28,7 @@ for file in "$folder"/*; do
         filename=$(basename -- "$file")
         filename_no_extension="${filename%.*}"
         output_file="$output/${filename_no_extension}"
-        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o "$file" > "$output_file"
+        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 10000 --o "$file" > "$output_file"
         echo "Processed $file and saved output to $output_file"
     fi
 done

@@ -82,7 +82,7 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 150
+lowerNe = 20
 if (args.lNe):
     lowerNe = int(args.lNe)
 
@@ -343,7 +343,7 @@ y = np.array([float(value) for value in y if float(value) > 0])
 
 #Split train and test data for cross validation
 # X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=40)
 
 #
 # Fit the linear regression model
@@ -356,11 +356,13 @@ print(f"\n-----------------LINEAR REGRESSION------------------")
 y_pred = result.predict(X_test)
 
 # Calculate errors
-errors = y_pred - y_test
-# Find the minimum and maximum error to get the range
-error_max = errors.max()
-error_min = errors.min()
-print( f"{error_min}, {error_max}")
+absolute_errors = np.abs(y_pred - y_test)
+min = np.min(absolute_errors)
+max = np.max(absolute_errors)
+q1 = np.percentile(absolute_errors, 25)
+median = np.percentile(absolute_errors, 50)
+q3 = np.percentile(absolute_errors, 75)
+mae = np.mean(absolute_errors)
 
 # Compute MSE, RMSE, and MAE for the test set
 mse_test = mean_squared_error(y_test, y_pred)
@@ -369,6 +371,7 @@ mae_test = mean_absolute_error(y_test, y_pred)
 print(f"MSE: {mse_test:.2f}")
 print(f"RMSE: {rmse_test:.2f}")
 print(f"MAE: {mae_test:.2f}")
+print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
 
 # Predict the value for the query point
 # prediction = model.predict(Z_scaled)
@@ -446,12 +449,15 @@ print(f"\n-----------------RANDOM FOREST------------------")
 
 # Make predictions on test data
 y_pred = rf_regressor.predict(X_test)
+
 # Calculate errors
-errors = y_pred - y_test
-# Find the minimum and maximum error to get the range
-error_max = errors.max()
-error_min = errors.min()
-print( f"{error_min}, {error_max}")
+absolute_errors = np.abs(y_pred - y_test)
+min = np.min(absolute_errors)
+max = np.max(absolute_errors)
+q1 = np.percentile(absolute_errors, 25)
+median = np.percentile(absolute_errors, 50)
+q3 = np.percentile(absolute_errors, 75)
+mae = np.mean(absolute_errors)
 
 # Predict the Ne value for input population
 rf_prediction = rf_regressor.predict(Z)
@@ -463,6 +469,8 @@ mae = mean_absolute_error(y_test, y_pred)
 print(f"MSE: {mse:.2f}")
 print(f"RMSE: {rmse:.2f}")
 print(f"MAE: {mae:.2f}")
+print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+
 
 print(f"\nPrediction:")
 print(rf_prediction.round(decimals=2))
@@ -509,7 +517,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 import copy
 #from skorch import NeuralNetRegressor
 #from sklearn.model_selection import GridSearchCV
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -607,12 +615,6 @@ for epoch in range(n_epochs):
         best_weights = copy.deepcopy(model.state_dict())
 
 print(f"\n-----------------NEURAL NETWORK------------------")
-# Calculate errors
-errors = y_pred - y_test
-# Find the minimum and maximum error to get the range
-error_max = errors.max()
-error_min = errors.min()
-print( f"{error_min}, {error_max}")
 
 # restore model and return best accuracy
 model.load_state_dict(best_weights)
@@ -625,37 +627,32 @@ y_pred = y_pred.detach().numpy()  # Ensure y_pred is detached from the computati
 
 # Calculate absolute errors
 absolute_errors = np.abs(y_pred - y_test)
-
-# Compute Mean Absolute Error (MAE)
+min = np.min(absolute_errors)
+max = np.max(absolute_errors)
+q1 = np.percentile(absolute_errors, 25)
+median = np.percentile(absolute_errors, 50)
+q3 = np.percentile(absolute_errors, 75)
 mae = np.mean(absolute_errors)
-print(f"MAE: {mae:.2f}")
+print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
 # ##########################
-#plt.plot(history)
-#plt.show()
+plt.plot(history)
+plt.show()
 
 model.eval()
-# with torch.no_grad():
-#     # Test out inference with 5 samples
-#     for i in range(5):
-#         X_sample = X_test[i: i+1]
-#         # X_sample = scaler.transform(X_sample)
-#         X_sample = X_sample = X_sample.clone().detach()
-#         y_pred = model(X_sample)
-        # print(f"{X_test[i]} -> {y_pred[0].numpy()} (expected {y_test[i].numpy()})")
-
 
 # Number of simulations
-n_simulations = 1000
+n_simulations = 100
 # Array to store predictions
 predictions = np.zeros(n_simulations)
 
 # Standard deviation of noise to add to Z for simulations
 # Adjust the scale based on your expected input variability
-noise_std = 0.1 * np.std(Z.numpy(), axis=0)
+noise_std = 0.01 * torch.std(Z)
 
 for i in range(n_simulations):
     # Add random noise to Z
-    Z_perturbed = Z + torch.randn_like(Z) * noise_std
+    random = torch.randn(Z.shape)
+    Z_perturbed = Z + (random * noise_std)
     # Predict with model
     with torch.no_grad():
         pred = model(Z_perturbed)
@@ -664,437 +661,12 @@ for i in range(n_simulations):
     predictions[i] = pred_scalar
 
 # Calculate confidence interval
-confidence_level = 0.95
-lower_percentile = ((1 - confidence_level) / 2) * 100
-upper_percentile = (confidence_level + ((1 - confidence_level) / 2)) * 100
-confidence_interval = np.percentile(predictions, [lower_percentile, upper_percentile])
+lower = np.percentile(predictions, 2.5)
+upper = np.percentile(predictions, 97.5)
+
 
 print(f"Neural network prediction: ")
 print(f"{np.mean(predictions).round(2)}")
-print(f"{confidence_level*100}% confidence interval:)")
-print(f"{confidence_interval.round(2)}")
-
-
-# # END
-# #########################
-# # FNN
-# #########################
-# import copy
-# from skorch import NeuralNetRegressor
-# from sklearn.model_selection import GridSearchCV
-# import matplotlib.pyplot as plt
-# import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# import tqdm
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.model_selection import ParameterGrid
-#
-#
-# # Convert to PyTorch tensors
-# X_train = X_train.astype(np.float32)
-# X_train = torch.tensor(X_train, dtype=torch.float32)
-# y_train = y_train.astype(np.float32)
-# y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
-# X_test = X_test.astype(np.float32)
-# X_test = torch.tensor(X_test, dtype=torch.float32)
-# y_test = y_test.astype(np.float32)
-# y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
-# Z = Z.astype(np.float32)
-# Z = torch.tensor(Z, dtype=torch.float32)
-#
-# # Define your hyperparameter grid
-# param_grid = {
-#     'layer_size': [10, 20, 40, 60, 80, 100],
-#     'lr': [0.01, 0.001, 0.0001],  # learning rates
-#     'batch_size': [10, 20, 50],  # batch sizes
-#     'dropout_rate': [0.1, 0.2, 0.5]  # dropout rates
-# }
-#
-# # Define a function for the model setup
-# def create_model(dropout_rate):
-#     model = nn.Sequential(
-#         nn.Linear(5, 20),
-#         nn.ReLU(),
-#         nn.Linear(20, 10),
-#         nn.ReLU(),
-#         nn.Linear(10, 5),
-#         nn.ReLU(),
-#         nn.Linear(5, 1),
-#         nn.Dropout(dropout_rate)
-#     )
-#     return model
-#
-# # Function to train and evaluate the model
-# def train_evaluate(params):
-#     model = create_model(params['dropout_rate'])
-#     optimizer = optim.Adam(model.parameters(), lr=params['lr'])
-#     loss_fn = nn.MSELoss()
-#     best_mse = np.inf
-#     best_weights = None
-#
-#     for epoch in range(n_epochs):
-#         model.train()
-#         for start in range(0, len(X_train), params['batch_size']):
-#             X_batch = X_train[start:start + params['batch_size']]
-#             y_batch = y_train[start:start + params['batch_size']]
-#             y_pred = model(X_batch)
-#             loss = loss_fn(y_pred, y_batch)
-#             optimizer.zero_grad()
-#             loss.backward()
-#             optimizer.step()
-#
-#         model.eval()
-#         y_pred = model(X_test)
-#         mse = loss_fn(y_pred, y_test).item()
-#         if mse < best_mse:
-#             best_mse = mse
-#             best_weights = copy.deepcopy(model.state_dict())
-#
-#     return best_mse, best_weights
-#
-# # Grid search
-# n_epochs = 100
-# best_overall_mse = np.inf
-# best_overall_params = None
-# best_model_weights = None
-#
-# for params in ParameterGrid(param_grid):
-#     mse, weights = train_evaluate(params)
-#     if mse < best_overall_mse:
-#         best_overall_mse = mse
-#         best_overall_params = params
-#         best_model_weights = weights
-#
-# # Load the best model weights
-# model = create_model(best_overall_params['dropout_rate'])
-# print(best_overall_params)
-# model.load_state_dict(best_model_weights)
-#
-# # Set the model to evaluation mode
-# model.eval()
-# test_predictions = model(X_test.float()).detach().numpy()
-#
-# # # Calculate the median
-# # median_value = np.median(test_predictions)
-# #
-# # # Calculate the 95% confidence interval
-# # confidence_interval = stats.norm.interval(0.95, loc=np.mean(test_predictions), scale=np.std(test_predictions))
-# #
-# # print("\nMedian Prediction of Feedforward Neural Network:")
-# # print(median_value)
-# # print("\n95% Confidence Interval:")
-# # print(confidence_interval)
-
-
-# Z = Z.astype(np.float32)
-
-# with torch.no_grad():
-#     input_data = torch.tensor(Z, dtype=torch.float32)  # Convert new data to a PyTorch tensor
-#     prediction = model(input_data)  # Forward pass to make predictions
-#     predicted_value = prediction.item()  # Extract the predicted value (assuming a single output)
-#
-# print(f"\nPrediction of Feedforward Neural Network Model:")
-# print(round(predicted_value,2))
-#
-#
-# # summarize results
-# print("Best: %f using %s" % (model.best_score_, model.best_params_))
-# means = model.cv_results_['mean_test_score']
-# stds = model.cv_results_['std_test_score']
-# params = model.cv_results_['params']
-# for mean, stdev, param in zip(means, stds, params):
-#     print("%f (%f) with: %r" % (mean, stdev, param))
-#
-# # print("\nMSE: %.2f" % best_mse)
-# # print("RMSE: %.2f" % np.sqrt(best_mse))
-#
-# print("----- %s seconds -----" % (time.time() - start_time))
-# #
-# # torch.manual_seed(0)
-# # torch.cuda.manual_seed(0)
-# # from sklearn.model_selection import cross_val_score, KFold
-# # from skorch import NeuralNetRegressor
-# # from sklearn.pipeline import Pipeline
-# # from torch import optim
-# # from torch import nn
-# # import torch.nn.functional as F
-# # from sklearn.metrics import mean_squared_error
-# #
-# #
-# # class Regressor(nn.Module):
-# #     def __init__(self, hidden_units=10, dropout_rate=0.0, activation=nn.):
-# #         super(Regressor, self).__init__()
-# #
-# #         self.first_layer = nn.Linear(X_train.shape[1], hidden_units)
-# #         self.dropout1 = nn.Dropout(dropout_rate)
-# #         self.second_layer = nn.Linear(hidden_units, 2*hidden_units)
-# #         self.dropout2 = nn.Dropout(dropout_rate)
-# #         self.final_layer = nn.Linear(2*hidden_units, 1)
-# #         self.activation = activation()
-# #
-# #     def forward(self, x_batch=16):
-# #         X = self.first_layer(x_batch)
-# #         X = self.activation(X)
-# #         X = self.dropout1(X)
-# #
-# #         X = self.second_layer(X)
-# #         X = self.activation(X)
-# #         X = self.dropout2(X)
-# #
-# #         return self.final_layer(X)
-# #
-# # # Create a Skorch NeuralNetRegressor
-# # skorch_regressor = NeuralNetRegressor(
-# #     module=Regressor,
-# #     optimizer=optim.Adam,
-# #     max_epochs=300,
-# #     verbose=0
-# # )
-# #
-# # # Define hyperparameters for grid search
-# # # param_grid = {
-# #    # 'module__hidden_units': [10, 20, 30],  # Number of neurons in the hidden layer
-# #     # 'module__dropout_rate': [0.0, 0.2, 0.4],  # Dropout rates
-# #     # 'module__activation': [nn.ReLU, nn.ELU, nn.LeakyReLU],  # Activation functions
-# #     #'max_epochs': [100, 200, 300],  # Number of training epochs
-# #    # 'batch_size': [16, 32, 64],  # Batch size
-# #    # 'lr': [0.001, 0.01, 0.1],  # Learning rate
-# #     # 'optimizer': [optim.Adam, optim.SGD, optim.RMSprop]  # Optimization algorithms
-# # # }
-# #
-# # # Create a GridSearchCV object to tune hyperparameters
-# # # grid_search = GridSearchCV(skorch_regressor, param_grid, cv=3, scoring='neg_mean_squared_error', verbose=2)
-# #
-# # # Fit the grid search to your data
-# # # grid_search.fit(X_train, y_train)
-# # skorch_regressor.fit(X_train, y_train)
-# #
-# # # Print the best hyperparameters and corresponding scores
-# # # print("Best Parameters: ", grid_search.best_params_)
-# # # print("Best Score (Negative MSE): ", grid_search.best_score_)
-# #
-# # # Get the best model from the grid search
-# # # best_model = grid_search.best_estimator_
-# #
-# # # Use the best model for predictions
-# # # y_preds = best_model.predict(X_test)
-# # # new_prediction = best_model.predict(Z)
-# # y_preds = skorch_regressor.predict(X_test)
-# # prediction = skorch_regressor.predict(Z)
-# #
-# # # Load your trained model weights (replace 'your_model.pth' with your model's file path)
-# # # best_model.initialize()
-# # # best_model.load_params(f_params='your_model.pth')
-# #
-# # # Number of Monte Carlo dropout samples
-# # n_samples = 1000
-# #
-# # # Initialize an array to store predictions from each dropout sample
-# # dropout_predictions = np.zeros(n_samples)
-# #
-# # # Enable evaluation mode and dropout during prediction
-# # # best_model.module_.eval()
-# # # best_model.module_.dropout1.train()
-# # # best_model.module_.dropout2.train()
-# # skorch_regressor.module_.eval()
-# # skorch_regressor.module_.dropout1.train()
-# # skorch_regressor.module_.dropout2.train()
-# #
-# # # Perform Monte Carlo dropout to generate multiple predictions
-# # for i in range(n_samples):
-# #     # Make predictions on the new data point
-# #     with torch.no_grad():
-# #         prediction = skorch_regressor.module_(Z).item()
-# #         dropout_predictions[i] = prediction
-# #
-# # # Calculate the mean and standard deviation of the dropout predictions
-# # prediction_mean = np.mean(dropout_predictions)
-# # prediction_std = np.std(dropout_predictions)
-# #
-# # # Set the confidence level (e.g., 95%)
-# # confidence_level = 0.95
-# #
-# # # Calculate the lower and upper bounds of the confidence interval
-# # alpha = (1 - confidence_level) / 2
-# # lower_bound = prediction_mean - prediction_std * 1.96  # Using Z-score for 95% CI
-# # upper_bound = prediction_mean + prediction_std * 1.96
-# #
-# # print("\nPrediction:")
-# # print(f"{prediction: .2f}")
-# # print("Mean Prediction:")
-# # print(f"{prediction_mean: .2f}")
-# # print("Prediction Standard Deviation:", prediction_std)
-# # print("95% Confidence Interval:")
-# # print(f'{lower_bound: .2f},{upper_bound:.2f}')
-# #
-# #
-# # # Evaluate the best model
-# # mse = mean_squared_error(y_test, y_preds)
-# # r2 = r2_score(y_test, y_preds)
-# #
-# # print("\nTest MSE:")
-# # print(mse)
-# # print("Test R^2:")
-# # print(r2)
-# #
-# # print("----- %s seconds -----" % (time.time() - start_time))
-
-
-
-
-
-
-# # # # Fit the grid search to your data
-# # # grid.fit(X, y)
-# #
-# # # Print the best hyperparameters and corresponding score
-# # print("Best Parameters: ", grid.best_params_)
-# # print("Best Score (Negative MSE): ", grid.best_score_)
-# #
-# # # You can also access the best model with grid_search.best_estimator_
-# # best_model = grid.best_estimatorMSE: %.2f" % np.sqrt(best_mse))
-
-
-print("----- %s seconds -----" % (time.time() - start_time))
-
-# torch.manual_seed(0)
-# torch.cuda.manual_seed(0)
-# from sklearn.model_selection import cross_val_score, KFold
-# from skorch import NeuralNetRegressor
-# from sklearn.pipeline import Pipeline
-# from torch import optim
-# from torch import nn
-# import torch.nn.functional as F
-# from sklearn.metrics import mean_squared_error
-#
-#
-# class Regressor(nn.Module):
-#     def __init__(self, hidden_units=10, dropout_rate=0.0, activation=nn.):
-#         super(Regressor, self).__init__()
-#
-#         self.first_layer = nn.Linear(X_train.shape[1], hidden_units)
-#         self.dropout1 = nn.Dropout(dropout_rate)
-#         self.second_layer = nn.Linear(hidden_units, 2*hidden_units)
-#         self.dropout2 = nn.Dropout(dropout_rate)
-#         self.final_layer = nn.Linear(2*hidden_units, 1)
-#         self.activation = activation()
-#
-#     def forward(self, x_batch=16):
-#         X = self.first_layer(x_batch)
-#         X = self.activation(X)
-#         X = self.dropout1(X)
-#
-#         X = self.second_layer(X)
-#         X = self.activation(X)
-#         X = self.dropout2(X)
-#
-#         return self.final_layer(X)
-#
-# # Create a Skorch NeuralNetRegressor
-# skorch_regressor = NeuralNetRegressor(
-#     module=Regressor,
-#     optimizer=optim.Adam,
-#     max_epochs=300,
-#     verbose=0
-# )
-#
-# # Define hyperparameters for grid search
-# # param_grid = {
-#    # 'module__hidden_units': [10, 20, 30],  # Number of neurons in the hidden layer
-#     # 'module__dropout_rate': [0.0, 0.2, 0.4],  # Dropout rates
-#     # 'module__activation': [nn.ReLU, nn.ELU, nn.LeakyReLU],  # Activation functions
-#     #'max_epochs': [100, 200, 300],  # Number of training epochs
-#    # 'batch_size': [16, 32, 64],  # Batch size
-#    # 'lr': [0.001, 0.01, 0.1],  # Learning rate
-#     # 'optimizer': [optim.Adam, optim.SGD, optim.RMSprop]  # Optimization algorithms
-# # }
-#
-# # Create a GridSearchCV object to tune hyperparameters
-# # grid_search = GridSearchCV(skorch_regressor, param_grid, cv=3, scoring='neg_mean_squared_error', verbose=2)
-#
-# # Fit the grid search to your data
-# # grid_search.fit(X_train, y_train)
-# skorch_regressor.fit(X_train, y_train)
-#
-# # Print the best hyperparameters and corresponding scores
-# # print("Best Parameters: ", grid_search.best_params_)
-# # print("Best Score (Negative MSE): ", grid_search.best_score_)
-#
-# # Get the best model from the grid search
-# # best_model = grid_search.best_estimator_
-#
-# # Use the best model for predictions
-# # y_preds = best_model.predict(X_test)
-# # new_prediction = best_model.predict(Z)
-# y_preds = skorch_regressor.predict(X_test)
-# prediction = skorch_regressor.predict(Z)
-#
-# # Load your trained model weights (replace 'your_model.pth' with your model's file path)
-# # best_model.initialize()
-# # best_model.load_params(f_params='your_model.pth')
-#
-# # Number of Monte Carlo dropout samples
-# n_samples = 1000
-#
-# # Initialize an array to store predictions from each dropout sample
-# dropout_predictions = np.zeros(n_samples)
-#
-# # Enable evaluation mode and dropout during prediction
-# # best_model.module_.eval()
-# # best_model.module_.dropout1.train()
-# # best_model.module_.dropout2.train()
-# skorch_regressor.module_.eval()
-# skorch_regressor.module_.dropout1.train()
-# skorch_regressor.module_.dropout2.train()
-#
-# # Perform Monte Carlo dropout to generate multiple predictions
-# for i in range(n_samples):
-#     # Make predictions on the new data point
-#     with torch.no_grad():
-#         prediction = skorch_regressor.module_(Z).item()
-#         dropout_predictions[i] = prediction
-#
-# # Calculate the mean and standard deviation of the dropout predictions
-# prediction_mean = np.mean(dropout_predictions)
-# prediction_std = np.std(dropout_predictions)
-#
-# # Set the confidence level (e.g., 95%)
-# confidence_level = 0.95
-#
-# # Calculate the lower and upper bounds of the confidence interval
-# alpha = (1 - confidence_level) / 2
-# lower_bound = prediction_mean - prediction_std * 1.96  # Using Z-score for 95% CI
-# upper_bound = prediction_mean + prediction_std * 1.96
-#
-# print("\nPrediction:")
-# print(f"{prediction: .2f}")
-# print("Mean Prediction:")
-# print(f"{prediction_mean: .2f}")
-# print("Prediction Standard Deviation:", prediction_std)
-# print("95% Confidence Interval:")
-# print(f'{lower_bound: .2f},{upper_bound:.2f}')
-
-
-# # Evaluate the best model
-# mse = mean_squared_error(y_test, y_preds)
-# r2 = r2_score(y_test, y_preds)
-#
-# print("\nTest MSE:")
-# print(mse)
-# print("Test R^2:")
-# print(r2)
-#
-# print("----- %s seconds -----" % (time.time() - start_time))
-
-
-
-# # # Fit the grid search to your data
-# # grid.fit(X, y)
-#
-# # Print the best hyperparameters and corresponding score
-# print("Best Parameters: ", grid.best_params_)
-# print("Best Score (Negative MSE): ", grid.best_score_)
-#
-# # You can also access the best model with grid_search.best_estimator_
-# best_model = grid.best_estimator
+print(f"median prediction: {np.median(predictions).round(2)}")
+print(f"95% confidence interval:")
+print(f"{lower:.2f}, {upper:.2f}")
