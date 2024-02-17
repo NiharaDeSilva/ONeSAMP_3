@@ -3,13 +3,10 @@
 #SBATCH --mail-type=ALL          # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=suhashi.desilva@gmail.com     # Where to send mail
 #SBATCH --ntasks=1		      # Number of tasks
-#SBATCH --gpus-per-task=1
 #SBATCH --cpus-per-task=64	      # Number of cores per task
 #SBATCH --mem=50gb                     # Job memory request
-#SBATCH --time=04:00:00               # Time limit hrs:min:sec
-#SBATCH --partition=hpg-ai
+#SBATCH --time=24:00:00               # Time limit hrs:min:sec
 #SBATCH --output=serial_test_%j.log   # Standard output and error log
-#SBATCH --array=6-6.
 
 pwd; hostname; date
 

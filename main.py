@@ -82,7 +82,7 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 20
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
@@ -517,7 +517,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 import copy
 #from skorch import NeuralNetRegressor
 #from sklearn.model_selection import GridSearchCV
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -635,8 +635,8 @@ q3 = np.percentile(absolute_errors, 75)
 mae = np.mean(absolute_errors)
 print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
 # ##########################
-plt.plot(history)
-plt.show()
+#plt.plot(history)
+#plt.show()
 
 model.eval()
 
