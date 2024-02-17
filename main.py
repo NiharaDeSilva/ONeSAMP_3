@@ -77,8 +77,8 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-# mutationRate = 0.000000012
-mutationRate = 0.012
+mutationRate = 0.000000012
+#mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -231,18 +231,17 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
-    #     POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-    #     intermediateFile)
-    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+         intermediateFile)
+   # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
 
-    # if (DEBUG):
-    #     print(cmd)
-    #
-    # returned_value = os.system(cmd)
-    #
-    # if returned_value:
-    #     print("ERROR:main:Refactor did not run")
+    if (DEBUG):
+         print(cmd)
+    
+    returned_value = os.system(cmd)
+
+    if returned_value:
+         print("ERROR:main:Refactor did not run")
     # exit()
     refactorFileStatistics = statisticsClass()
 
@@ -371,7 +370,7 @@ mae_test = mean_absolute_error(y_test, y_pred)
 print(f"MSE: {mse_test:.2f}")
 print(f"RMSE: {rmse_test:.2f}")
 print(f"MAE: {mae_test:.2f}")
-print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
 
 # Predict the value for the query point
 # prediction = model.predict(Z_scaled)
@@ -469,7 +468,7 @@ mae = mean_absolute_error(y_test, y_pred)
 print(f"MSE: {mse:.2f}")
 print(f"RMSE: {rmse:.2f}")
 print(f"MAE: {mae:.2f}")
-print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
 
 
 print(f"\nPrediction:")
@@ -633,7 +632,8 @@ q1 = np.percentile(absolute_errors, 25)
 median = np.percentile(absolute_errors, 50)
 q3 = np.percentile(absolute_errors, 75)
 mae = np.mean(absolute_errors)
-print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+print(f"MAE: {mae:.2f}")
+print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
 # ##########################
 #plt.plot(history)
 #plt.show()

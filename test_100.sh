@@ -16,8 +16,8 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 echo "Running plot script on multiple CPU cores"
 
 
-folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V5"
+folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V8"
 
 # Iterate through the files in the folder
 for file in "$folder"/*; do
@@ -25,7 +25,7 @@ for file in "$folder"/*; do
         filename=$(basename -- "$file")
         filename_no_extension="${filename%.*}"
         output_file="$output/${filename_no_extension}"
-        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 10000 --o "$file" > "$output_file"
+        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o "$file" > "$output_file"
         echo "Processed $file and saved output to $output_file"
     fi
 done
