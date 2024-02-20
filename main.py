@@ -26,7 +26,7 @@ from sklearn.model_selection import cross_val_predict
 
 # import matplotlib.pyplot as plt
 # from sklearn.metrics import PredictionErrorDisplay
-
+import subprocess
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -102,8 +102,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-# rangeNe = "%d,%d" % (lowerNe, upperNe)
-rangeNe = (lowerNe, upperNe)
+rangeNe = "%d,%d" % (lowerNe, upperNe)
+#rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -231,18 +231,51 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+    command = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
          intermediateFile)
    # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
 
-    if (DEBUG):
-         print(cmd)
+    #if (DEBUG):
+     #    print(cmd)
     
-    returned_value = os.system(cmd)
+   # returned_value = os.system(cmd)
 
-    if returned_value:
-         print("ERROR:main:Refactor did not run")
+    #if returned_value:
+     #    print("ERROR:main:Refactor did not run")
     # exit()
+
+# Construct the command as a list of arguments
+   # command = [
+  #      POPULATION_GENERATOR,
+   #     "-u", "%.9f" % mutationRate,
+  #      "-v", str(rangeTheta),
+  #      "-rC",
+  #      "-l", str(loci),
+  #      "-i", str(sampleSize),
+  #      "-d", str(rangeDuration),
+  #      "-s",
+  #      "-t1",
+  #      "-b", str(rangeNe),
+  #      "-f", "%.9f" % minAlleleFreq,
+  #      "-o1",
+  #      "-p",
+  #      ">", intermediateFile
+  #  ]
+
+# Execute the command
+    if DEBUG:
+        print(" ".join(command))
+
+# Note: subprocess.run() by default does not interpret shell-specific syntax like redirection (>)
+# You need to either handle output redirection in Python or set shell=True (with caution)
+    result = subprocess.run(command, shell=True, text=True, capture_output=True)
+
+    if result.returncode != 0:
+        print("ERROR:main:Refactor did not run")
+        print(result.stderr)
+
+
+
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
@@ -290,10 +323,10 @@ if __name__ == '__main__':
 #     for result in results_list:
 #         result_file.write('\t'.join(result) + '\n')
 #
-try:
-    shutil.rmtree(path, ignore_errors=True)
-except FileExistsError:
-    pass
+#try:
+ #   shutil.rmtree(path, ignore_errors=True)
+#except FileExistsError:
+ #   pass
 # fileALLPOP.close()
 
 
