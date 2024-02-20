@@ -26,7 +26,7 @@ from sklearn.model_selection import cross_val_predict
 
 # import matplotlib.pyplot as plt
 # from sklearn.metrics import PredictionErrorDisplay
-
+import subprocess
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -82,11 +82,11 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 40
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe = 400
+upperNe = 250
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -102,8 +102,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-# rangeNe = "%d,%d" % (lowerNe, upperNe)
-rangeNe = (lowerNe, upperNe)
+rangeNe = "%d,%d" % (lowerNe, upperNe)
+#rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -219,7 +219,6 @@ statistics3 = [0 for x in range(numOneSampTrials)]
 statistics5 = [0 for x in range(numOneSampTrials)]
 statistics4 = [0 for x in range(numOneSampTrials)]
 
-rate = 0.012
 simulate_populations = SimulatePopulations()
 
 # Generate random populations and calculate summary statistics
@@ -231,19 +230,33 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (
-    #     POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-    #     intermediateFile)
-    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+         intermediateFile)
+   # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
 
-    # if (DEBUG):
-    #     print(cmd)
-    #
-    # returned_value = os.system(cmd)
-    #[
-    # if returned_value:
-    #     print("ERROR:main:Refactor did not run")
+    #if (DEBUG):
+     #    print(cmd)
+    
+   # returned_value = os.system(cmd)
+
+    #if returned_value:
+     #    print("ERROR:main:Refactor did not run")
     # exit()
+
+# Execute the command
+    if DEBUG:
+        print(" ".join(cmd))
+
+# Note: subprocess.run() by default does not interpret shell-specific syntax like redirection (>)
+# You need to either handle output redirection in Python or set shell=True (with caution)
+    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+
+    if result.returncode != 0:
+        print("ERROR:main:Refactor did not run")
+        print(result.stderr)
+
+
+
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
@@ -291,10 +304,10 @@ if __name__ == '__main__':
 #     for result in results_list:
 #         result_file.write('\t'.join(result) + '\n')
 #
-try:
-    shutil.rmtree(path, ignore_errors=True)
-except FileExistsError:
-    pass
+#try:
+ #   shutil.rmtree(path, ignore_errors=True)
+#except FileExistsError:
+ #   pass
 # fileALLPOP.close()
 
 
@@ -371,7 +384,7 @@ mae_test = mean_absolute_error(y_test, y_pred)
 print(f"MSE: {mse_test:.2f}")
 print(f"RMSE: {rmse_test:.2f}")
 print(f"MAE: {mae_test:.2f}")
-print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
 
 # Predict the value for the query point
 # prediction = model.predict(Z_scaled)
@@ -419,15 +432,12 @@ print("\nCoefficients for each feature:")
 for feature, coef in zip(inputStatsList.columns, coefficients):
     print(f"Variable: {feature}: {coef:.2f}")
 
-
 # Perform k-fold cross-validation
 # cv_scores = cross_val_score(model, X_scaled, y_transformed, cv=10)
 # cv_scores = cross_val_score(model, X, y, cv=10)
 # print("\nCross validation scores : ", round(cv_scores[0],2), round(cv_scores[1],2), round(cv_scores[2],2), round(cv_scores[3],2), round(cv_scores[4],2))
 
-
 print("----- %s seconds -----" % (time.time() - start_time))
-
 
 
 # Deleting temporary files
@@ -469,7 +479,7 @@ mae = mean_absolute_error(y_test, y_pred)
 print(f"MSE: {mse:.2f}")
 print(f"RMSE: {rmse:.2f}")
 print(f"MAE: {mae:.2f}")
-print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
 
 
 print(f"\nPrediction:")
@@ -517,7 +527,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 import copy
 #from skorch import NeuralNetRegressor
 #from sklearn.model_selection import GridSearchCV
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -633,10 +643,11 @@ q1 = np.percentile(absolute_errors, 25)
 median = np.percentile(absolute_errors, 50)
 q3 = np.percentile(absolute_errors, 75)
 mae = np.mean(absolute_errors)
-print(f"{min:.2f}   {max:.2f}  {mae:.2f}  {median:.2f}  {q1:.2f}  {q3:.2f}")
+print(f"MAE: {mae:.2f}")
+print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
 # ##########################
-plt.plot(history)
-plt.show()
+#plt.plot(history)
+#plt.show()
 
 model.eval()
 
