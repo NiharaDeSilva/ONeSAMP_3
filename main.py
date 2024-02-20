@@ -232,7 +232,7 @@ def processRandomPopulation(x):
     intermediateFile = os.path.join(path, intermediateFilename)
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
          intermediateFile)
-   # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile)
+   # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
     #if (DEBUG):
      #    print(cmd)
@@ -524,160 +524,163 @@ print("----- %s seconds -----" % (time.time() - start_time))
 #########################
 # FNN
 #########################
-import copy
-#from skorch import NeuralNetRegressor
-#from sklearn.model_selection import GridSearchCV
-#import matplotlib.pyplot as plt
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import tqdm
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import ParameterGrid
+# import copy
+# #from skorch import NeuralNetRegressor
+# #from sklearn.model_selection import GridSearchCV
+# #import matplotlib.pyplot as plt
+# import torch
+# import torch.nn as nn
+# import torch.optim as optim
+# import tqdm
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.model_selection import ParameterGrid
+#
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# print(device)
+#
+# # Convert to PyTorch tensors
+# X_train = X_train.astype(np.float32)
+# X_test = X_test.astype(np.float32)
+#
+# # train-test split for model evaluation
+# # X_train_raw, X_test_raw, y_train, y_test = train_test_split(X, y, train_size=0.7, shuffle=True)
+#
+# # Standardizing data
+# # scaler = StandardScaler()
+# # scaler.fit(X_train_raw)
+# # X_train = scaler.transform(X_train_raw)
+# # X_test = scaler.transform(X_test_raw)
+#
+#
+# X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
+# X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
+# y_train = y_train.astype(np.float32)
+# y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1).to(device)
+# y_test = y_test.astype(np.float32)
+# y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1).to(device)
+# Z = Z.astype(np.float32)
+# Z = torch.tensor(Z, dtype=torch.float32).to(device)
+#
+# # # Convert to 2D PyTorch tensors
+# # X_train = torch.tensor(X_train, dtype=torch.float32)
+# # y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
+# # X_test = torch.tensor(X_test, dtype=torch.float32)
+# # y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
+#
+# # Define the model
+# model = nn.Sequential(
+#     nn.Linear(5, 100),
+#     nn.ReLU(),
+#     nn.Linear(100, 200),
+#     nn.ReLU(),
+#     nn.Linear(200, 100),
+#     nn.ReLU(),
+#     nn.Linear(100, 20),
+#     nn.ReLU(),
+#     nn.Linear(20, 5),
+#     nn.ReLU(),
+#     nn.Linear(5, 1)
+# )
+# model.to(device)
+#
+# # loss function and optimizer
+# loss_fn = nn.MSELoss()  # mean square error
+# optimizer = optim.Adam(model.parameters(), lr=0.01)
+#
+# n_epochs = 100   # number of epochs to run
+# batch_size = 10  # size of each batch
+# batch_start = torch.arange(0, len(X_train), batch_size)
+#
+# # Hold the best model
+# best_mse = np.inf   # init to infinity
+# best_weights = None
+# history = []
+#
+# for epoch in range(n_epochs):
+#     model.train()
+#     with tqdm.tqdm(batch_start, unit="batch", mininterval=0, disable=True) as bar:
+#         bar.set_description(f"Epoch {epoch}")
+#         for start in bar:
+#             # take a batch
+#             X_batch = X_train[start:start+batch_size]
+#             y_batch = y_train[start:start+batch_size]
+#             # forward pass
+#             y_pred = model(X_batch)
+#             loss = loss_fn(y_pred, y_batch)
+#             # backward pass
+#             optimizer.zero_grad()
+#             loss.backward()
+#             # update weights
+#             optimizer.step()
+#             # print progress
+#             bar.set_postfix(mse=float(loss))
+#     # evaluate accuracy at end of each epoch
+#     model.eval()
+#     y_pred = model(X_test)
+#     mse = loss_fn(y_pred, y_test)
+#     mse = float(mse)
+#     history.append(mse)
+#     if mse < best_mse:
+#         best_mse = mse
+#         best_weights = copy.deepcopy(model.state_dict())
+#
+# print(f"\n-----------------NEURAL NETWORK------------------")
+#
+# # restore model and return best accuracy
+# model.load_state_dict(best_weights)
+# print("MSE: %.2f" % best_mse)
+# print("RMSE: %.2f" % np.sqrt(best_mse))
+#
+# # Convert tensors to numpy arrays
+# y_test = y_test.numpy()
+# y_pred = y_pred.detach().numpy()  # Ensure y_pred is detached from the computation graph
+#
+# # Calculate absolute errors
+# absolute_errors = np.abs(y_pred - y_test)
+# min = np.min(absolute_errors)
+# max = np.max(absolute_errors)
+# q1 = np.percentile(absolute_errors, 25)
+# median = np.percentile(absolute_errors, 50)
+# q3 = np.percentile(absolute_errors, 75)
+# mae = np.mean(absolute_errors)
+# print(f"MAE: {mae:.2f}")
+# print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
+# # ##########################
+# #plt.plot(history)
+# #plt.show()
+#
+# model.eval()
+#
+# # Number of simulations
+# n_simulations = 100
+# # Array to store predictions
+# predictions = np.zeros(n_simulations)
+#
+# # Standard deviation of noise to add to Z for simulations
+# # Adjust the scale based on your expected input variability
+# noise_std = 0.01 * torch.std(Z)
+#
+# for i in range(n_simulations):
+#     # Add random noise to Z
+#     random = torch.randn(Z.shape)
+#     Z_perturbed = Z + (random * noise_std)
+#     # Predict with model
+#     with torch.no_grad():
+#         pred = model(Z_perturbed)
+#     # Ensure pred is converted to a scalar if necessary, assuming pred should be a single value
+#     pred_scalar = pred.numpy().flatten()[0]  # Flatten and take the first element to ensure scalar conversion
+#     predictions[i] = pred_scalar
+#
+# # Calculate confidence interval
+# lower = np.percentile(predictions, 2.5)
+# upper = np.percentile(predictions, 97.5)
+#
+#
+# print(f"Neural network prediction: ")
+# print(f"{np.mean(predictions).round(2)}")
+# print(f"median prediction: {np.median(predictions).round(2)}")
+# print(f"95% confidence interval:")
+# print(f"{lower:.2f}, {upper:.2f}")
+#
+# print("----- %s seconds -----" % (time.time() - start_time))
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(device)
-
-# Convert to PyTorch tensors
-X_train = X_train.astype(np.float32)
-X_test = X_test.astype(np.float32)
-
-# train-test split for model evaluation
-# X_train_raw, X_test_raw, y_train, y_test = train_test_split(X, y, train_size=0.7, shuffle=True)
-
-# Standardizing data
-# scaler = StandardScaler()
-# scaler.fit(X_train_raw)
-# X_train = scaler.transform(X_train_raw)
-# X_test = scaler.transform(X_test_raw)
-
-
-X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
-X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
-y_train = y_train.astype(np.float32)
-y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1).to(device)
-y_test = y_test.astype(np.float32)
-y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1).to(device)
-Z = Z.astype(np.float32)
-Z = torch.tensor(Z, dtype=torch.float32).to(device)
-
-# # Convert to 2D PyTorch tensors
-# X_train = torch.tensor(X_train, dtype=torch.float32)
-# y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
-# X_test = torch.tensor(X_test, dtype=torch.float32)
-# y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
-
-# Define the model
-model = nn.Sequential(
-    nn.Linear(5, 100),
-    nn.ReLU(),
-    nn.Linear(100, 200),
-    nn.ReLU(),
-    nn.Linear(200, 100),
-    nn.ReLU(),
-    nn.Linear(100, 20),
-    nn.ReLU(),
-    nn.Linear(20, 5),
-    nn.ReLU(),
-    nn.Linear(5, 1)
-)
-model.to(device)
-
-# loss function and optimizer
-loss_fn = nn.MSELoss()  # mean square error
-optimizer = optim.Adam(model.parameters(), lr=0.01)
-
-n_epochs = 100   # number of epochs to run
-batch_size = 10  # size of each batch
-batch_start = torch.arange(0, len(X_train), batch_size)
-
-# Hold the best model
-best_mse = np.inf   # init to infinity
-best_weights = None
-history = []
-
-for epoch in range(n_epochs):
-    model.train()
-    with tqdm.tqdm(batch_start, unit="batch", mininterval=0, disable=True) as bar:
-        bar.set_description(f"Epoch {epoch}")
-        for start in bar:
-            # take a batch
-            X_batch = X_train[start:start+batch_size]
-            y_batch = y_train[start:start+batch_size]
-            # forward pass
-            y_pred = model(X_batch)
-            loss = loss_fn(y_pred, y_batch)
-            # backward pass
-            optimizer.zero_grad()
-            loss.backward()
-            # update weights
-            optimizer.step()
-            # print progress
-            bar.set_postfix(mse=float(loss))
-    # evaluate accuracy at end of each epoch
-    model.eval()
-    y_pred = model(X_test)
-    mse = loss_fn(y_pred, y_test)
-    mse = float(mse)
-    history.append(mse)
-    if mse < best_mse:
-        best_mse = mse
-        best_weights = copy.deepcopy(model.state_dict())
-
-print(f"\n-----------------NEURAL NETWORK------------------")
-
-# restore model and return best accuracy
-model.load_state_dict(best_weights)
-print("MSE: %.2f" % best_mse)
-print("RMSE: %.2f" % np.sqrt(best_mse))
-
-# Convert tensors to numpy arrays
-y_test = y_test.numpy()
-y_pred = y_pred.detach().numpy()  # Ensure y_pred is detached from the computation graph
-
-# Calculate absolute errors
-absolute_errors = np.abs(y_pred - y_test)
-min = np.min(absolute_errors)
-max = np.max(absolute_errors)
-q1 = np.percentile(absolute_errors, 25)
-median = np.percentile(absolute_errors, 50)
-q3 = np.percentile(absolute_errors, 75)
-mae = np.mean(absolute_errors)
-print(f"MAE: {mae:.2f}")
-print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
-# ##########################
-#plt.plot(history)
-#plt.show()
-
-model.eval()
-
-# Number of simulations
-n_simulations = 100
-# Array to store predictions
-predictions = np.zeros(n_simulations)
-
-# Standard deviation of noise to add to Z for simulations
-# Adjust the scale based on your expected input variability
-noise_std = 0.01 * torch.std(Z)
-
-for i in range(n_simulations):
-    # Add random noise to Z
-    random = torch.randn(Z.shape)
-    Z_perturbed = Z + (random * noise_std)
-    # Predict with model
-    with torch.no_grad():
-        pred = model(Z_perturbed)
-    # Ensure pred is converted to a scalar if necessary, assuming pred should be a single value
-    pred_scalar = pred.numpy().flatten()[0]  # Flatten and take the first element to ensure scalar conversion
-    predictions[i] = pred_scalar
-
-# Calculate confidence interval
-lower = np.percentile(predictions, 2.5)
-upper = np.percentile(predictions, 97.5)
-
-
-print(f"Neural network prediction: ")
-print(f"{np.mean(predictions).round(2)}")
-print(f"median prediction: {np.median(predictions).round(2)}")
-print(f"95% confidence interval:")
-print(f"{lower:.2f}, {upper:.2f}")

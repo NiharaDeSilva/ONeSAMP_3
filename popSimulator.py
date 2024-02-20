@@ -4,22 +4,22 @@ import random
 
 class SimulatePopulations:
 
-    def simulate_populations(self, sample_size, loci, neRange,  rate):
+    def simulate_populations(self, sample_size, loci, neRange,  rate, duration_start, duration_range, missing_data_percentage):
         if isinstance(neRange, tuple):
             effective_population = np.random.uniform(neRange[0],neRange[1])
         else:
             effective_population = neRange
     # Simulate ancestral history and add mutations
-        tree_sequence = msprime.sim_ancestry(samples=sample_size, start_time=2, model=msprime.DiscreteTimeWrightFisher(duration=6), ploidy=2, recombination_rate=1e-8, population_size=effective_population, sequence_length=loci, random_seed=42)
+        tree_sequence = msprime.sim_ancestry(samples=sample_size, start_time=duration_start, model=msprime.DiscreteTimeWrightFisher(duration=duration_range), ploidy=2, recombination_rate=1e-8, population_size=effective_population, sequence_length=loci, random_seed=42)
         tree_sequence = msprime.sim_mutations(tree_sequence, rate=rate, random_seed=42)
 
         # Convert the tree sequence to a matrix of haplotypes
         haplotypes = np.array([list(hap) for hap in tree_sequence.haplotypes()])
 
         # Introduce missing data
-        missing_data_proportion = 0.0  # e.g., 20% of the data is missing
+        # missing_data_proportion = 0.0
         num_sites = tree_sequence.num_sites
-        num_missing = int(num_sites * missing_data_proportion * len(haplotypes)/2)
+        num_missing = int(num_sites * missing_data_percentage * len(haplotypes)/2)
 
         for _ in range(num_missing):
                 # Randomly choose a site and a sample
@@ -45,8 +45,8 @@ class SimulatePopulations:
         return encoded_values
 
     # Convert simulated population to genepop format and print the effective population
-    def generate_population_data(self, sample_size, loci, neRange, rate, file_name):
-        result = self.simulate_populations(sample_size, loci, neRange, rate)
+    def generate_population_data(self, sample_size, loci, neRange, rate, file_name, duration_start, duration_range, missing_data_percentage):
+        result = self.simulate_populations(sample_size, loci, neRange, rate, duration_start, duration_range, missing_data_percentage)
         diploid_haplotypes = result[0]
         content = "Generated genotype output\n"
         content += "\n".join(str(i+1) for i in range(loci))
@@ -60,8 +60,8 @@ class SimulatePopulations:
             file.write(content)
 
     # Convert simulated population to genepop format - input population
-    def generate_input_population(self, sample_size, loci, effective_population, rate, file_name):
-        result = self.simulate_populations(sample_size, loci, effective_population, rate)
+    def generate_input_population(self, sample_size, loci, effective_population, rate, file_name, duration_start, duration_range, missing_data_percentage):
+        result = self.simulate_populations(sample_size, loci, effective_population, rate, duration_start, duration_range, missing_data_percentage)
         diploid_haplotypes = result[0]
         content = "Generated genotype output\n"
         content += "\n".join(str(i+1) for i in range(loci))
