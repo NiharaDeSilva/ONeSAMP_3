@@ -1,141 +1,51 @@
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
-ERROR:main:Refactor did not run
+
+-----------------LINEAR REGRESSION------------------
+MSE: 438.11
+RMSE: 20.93
+MAE: 16.38
+0.21 54.21 12.63 5.86 22.80
+
+Prediction: [221.71]
+95% confidence interval: [181.07, 262.34]
+
+Coefficients for each feature:
+Variable: Emean_exhyt: -28349.72
+Variable: Fix_index: 12.55
+Variable: Mlocus_homozegosity_mean: 11.94
+Variable: Mlocus_homozegosity_variance: -412.84
+Variable: Gametic_disequilibrium: 704.98
+----- 30.038548707962036 seconds -----
+
+-----------------RANDOM FOREST------------------
+MSE: 0.00
+RMSE: 0.00
+MAE: 0.00
+0.00 0.00 0.00 0.00 0.00
+
+Prediction:
+[235.53]
+
+Median Prediction: 
+[235.53]
+95% confidence interval:
+(232.5, 244.5)
+
+Feature importance
+Variable: Emean_exhyt                    : 0.54
+Variable: Mlocus_homozegosity_mean       : 0.24
+Variable: Fix_index                      : 0.1
+Variable: Mlocus_homozegosity_variance   : 0.06
+Variable: Gametic_disequilibrium         : 0.06
+----- 78.25099039077759 seconds -----
+cpu
+
+-----------------NEURAL NETWORK------------------
+MSE: 405.29
+RMSE: 20.13
+MAE: 18.62
+0.48 42.15 18.28 10.35 25.23
+Neural network prediction: 
+231.39
+median prediction: 244.03
+95% confidence interval:
+135.80, 347.58
