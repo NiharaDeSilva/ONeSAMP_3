@@ -1,0 +1,53 @@
+
+-----------------LINEAR REGRESSION------------------
+MSE: 629.56
+RMSE: 25.09
+MAE: 21.71
+0.00   48.93  21.71  20.88  11.60  30.83
+
+Prediction: [249.83]
+95% confidence interval: [201.49, 298.18]
+
+Coefficients for each feature:
+Variable: Emean_exhyt: -64590.65
+Variable: Fix_index: -1.16
+Variable: Mlocus_homozegosity_mean: -1.03
+Variable: Mlocus_homozegosity_variance: -14.29
+Variable: Gametic_disequilibrium: -956.76
+----- 1656.9347960948944 seconds -----
+rm: inputPopStats_genePop100x320_30: No such file or directory
+
+-----------------RANDOM FOREST------------------
+MSE: 0.03
+RMSE: 0.17
+MAE: 0.11
+0.00   0.49  0.11  0.08  0.00  0.18
+
+Prediction:
+[189.11]
+
+Median Prediction:
+[189.11]
+95% confidence interval:
+(185.24, 191.96)
+
+Feature importance
+Variable: Emean_exhyt                    : 0.38
+Variable: Fix_index                      : 0.21
+Variable: Mlocus_homozegosity_variance   : 0.19
+Variable: Mlocus_homozegosity_mean       : 0.16
+Variable: Gametic_disequilibrium         : 0.06
+----- 1677.6108748912811 seconds -----
+cpu
+
+-----------------NEURAL NETWORK------------------
+MSE: 981.03
+RMSE: 31.32
+3.60   48.67  28.38  26.26  17.81  41.23
+Neural network prediction:
+200.47
+median prediction: 200.47
+95% confidence interval:
+200.47, 200.47
+
+Process finished with exit code 0
