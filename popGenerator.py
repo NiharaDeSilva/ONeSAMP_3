@@ -4,7 +4,7 @@ import os
 ONESAMP2COAL_MINALLELEFREQUENCY=0.05
 mutationRate=0.012
 rangeNe=100,500
-NeVal=200
+NeVal=100
 numPOP="00256"
 
 
@@ -15,6 +15,6 @@ simulate_populations = SimulatePopulations()
 for sampleSize in outputSampleSizes:
     for loci in locis:
         file_name = f"genePop{sampleSize}x{loci}"
-        path = os.path.join("../data/", file_name)
+        path = os.path.join("../data_100/", file_name)
         simulate_populations.generate_input_population(sampleSize, loci, NeVal, mutationRate, path)
 

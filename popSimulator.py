@@ -17,7 +17,7 @@ class SimulatePopulations:
         haplotypes = np.array([list(hap) for hap in tree_sequence.haplotypes()])
 
         # Introduce missing data
-        missing_data_proportion = 0.2  # e.g., 20% of the data is missing
+        missing_data_proportion = 0.0  # e.g., 20% of the data is missing
         num_sites = tree_sequence.num_sites
         num_missing = int(num_sites * missing_data_proportion * len(haplotypes)/2)
 

@@ -82,11 +82,11 @@ mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 20
+lowerNe = 40
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe =250
+upperNe = 400
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -240,7 +240,7 @@ def processRandomPopulation(x):
     #     print(cmd)
     #
     # returned_value = os.system(cmd)
-    #
+    #[
     # if returned_value:
     #     print("ERROR:main:Refactor did not run")
     # exit()
@@ -440,7 +440,7 @@ delete_INPUTPOP = os.system(delete1)
 # # RANDOM FOREST REGRESSION
 # ##########################
 # Initialize the Random Forest Regressor
-rf_regressor = RandomForestRegressor(n_estimators=10000, random_state=42)
+rf_regressor = RandomForestRegressor(n_estimators=1000, max_depth=80, random_state=42)
 
 # Train the model on the training data
 rf_regressor.fit(X_train, y_train)
