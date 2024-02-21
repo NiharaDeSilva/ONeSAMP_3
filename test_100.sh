@@ -18,7 +18,7 @@ echo "Running plot script on multiple CPU cores"
 
 
 folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V9"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V10"
 
 #Iterate through the files in the folder
 for file in "$folder"/*; do

@@ -445,6 +445,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # ##########################
 # Initialize the Random Forest Regressor
 rf_regressor = RandomForestRegressor(n_estimators=1000, max_depth=80, random_state=42)
+
 # Train the model on the training data
 rf_regressor.fit(X_train, y_train)
 
