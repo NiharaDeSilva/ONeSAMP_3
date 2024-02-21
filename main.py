@@ -320,7 +320,7 @@ with fileALLPOP as result_file:
 ########################################
 # STARTING LINEAR REGRESSION
 #########################################
-# ALL_POP_STATS_FILE = allPopStats
+ALL_POP_STATS_FILE = allPopStats
 
 # R SCRIPT
 rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
@@ -688,4 +688,6 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # print(f"{lower:.2f}, {upper:.2f}")
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
+
+'''
 
