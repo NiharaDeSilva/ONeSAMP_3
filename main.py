@@ -147,6 +147,10 @@ if (DEBUG):
     print("Start calculation of statistics for input population")
 
 rangeTheta = "%f,%f" % (lowerTheta, upperTheta)
+duration_start=2
+duration_range=6
+missing_data_percentage=0.0
+
 
 #########################################
 # STARTING INITIAL POPULATION
@@ -230,9 +234,9 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-         intermediateFile)
-   # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+    #     intermediateFile)
+    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
     #if (DEBUG):
      #    print(cmd)
@@ -244,16 +248,16 @@ def processRandomPopulation(x):
     # exit()
 
 # Execute the command
-    if DEBUG:
-        print(" ".join(cmd))
+#    if DEBUG:
+#        print(" ".join(cmd))
 
 # Note: subprocess.run() by default does not interpret shell-specific syntax like redirection (>)
 # You need to either handle output redirection in Python or set shell=True (with caution)
-    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+#    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
 
-    if result.returncode != 0:
-        print("ERROR:main:Refactor did not run")
-        print(result.stderr)
+#    if result.returncode != 0:
+#        print("ERROR:main:Refactor did not run")
+#        print(result.stderr)
 
 
 
@@ -280,8 +284,8 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
-# allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-# fileALLPOP = open(allPopStats, 'w+')
+allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+fileALLPOP = open(allPopStats, 'w+')
 
 try:
     os.mkdir(path)
@@ -300,10 +304,10 @@ if __name__ == '__main__':
                 print(f"Generated an exception: {e}")
 
 # Write all population stats to a file to pass as input for Rscript
-# with fileALLPOP as result_file:
-#     for result in results_list:
-#         result_file.write('\t'.join(result) + '\n')
-#
+with fileALLPOP as result_file:
+    for result in results_list:
+        result_file.write('\t'.join(result) + '\n')
+
 #try:
  #   shutil.rmtree(path, ignore_errors=True)
 #except FileExistsError:
@@ -319,19 +323,20 @@ if __name__ == '__main__':
 # ALL_POP_STATS_FILE = allPopStats
 
 # R SCRIPT
-# rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
-# print(rScriptCMD)
-# res = os.system(rScriptCMD)
-#
-# if (res):
-#     print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
-#     exit()
-#
-# if (DEBUG):
-#     print("Finish linear regression")
-#
-# print("--- %s seconds ---" % (time.time() - start_time))
+rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
+print(rScriptCMD)
+res = os.system(rScriptCMD)
 
+if (res):
+    print("ERROR:main: Could not run Rscript.  FATAL ERROR.")
+    exit()
+
+if (DEBUG):
+    print("Finish linear regression")
+
+print("--- %s seconds ---" % (time.time() - start_time))
+
+'''
 ################################
 # LINEAR REGRESSION WITH SKLEARN
 ################################
