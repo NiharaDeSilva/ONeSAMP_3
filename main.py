@@ -149,7 +149,7 @@ if (DEBUG):
 rangeTheta = "%f,%f" % (lowerTheta, upperTheta)
 duration_start=2
 duration_range=6
-missing_data_percentage=0.0
+missing_data_percentage=0.2
 
 
 #########################################
@@ -284,8 +284,6 @@ def processRandomPopulation(x):
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
-allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-fileALLPOP = open(allPopStats, 'w+')
 
 try:
     os.mkdir(path)
@@ -295,13 +293,17 @@ except FileExistsError:
 if __name__ == '__main__':
     multiprocessing.set_start_method('fork')
     # Parallel process the random populations and add to a list
-    with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=20000) as executor:
         # As each task completes, put the result in the queue
         for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
             try:
                 results_list.append(result)
             except Exception as e:
                 print(f"Generated an exception: {e}")
+'''
+# R SCRIPT
+allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+fileALLPOP = open(allPopStats, 'w+')
 
 # Write all population stats to a file to pass as input for Rscript
 with fileALLPOP as result_file:
@@ -320,9 +322,9 @@ with fileALLPOP as result_file:
 ########################################
 # STARTING LINEAR REGRESSION
 #########################################
+
 ALL_POP_STATS_FILE = allPopStats
 
-# R SCRIPT
 rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
 print(rScriptCMD)
 res = os.system(rScriptCMD)
@@ -446,8 +448,8 @@ print("----- %s seconds -----" % (time.time() - start_time))
 
 
 # Deleting temporary files
-delete1 = "rm " + inputPopStats
-delete_INPUTPOP = os.system(delete1)
+# delete1 = "rm " + inputPopStats
+# delete_INPUTPOP = os.system(delete1)
 
 # # delete2 = "rm " + allPopStats
 # # delete_ALLPOP = os.system(delete2)
@@ -689,5 +691,4 @@ print("----- %s seconds -----" % (time.time() - start_time))
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
 
-'''
 
