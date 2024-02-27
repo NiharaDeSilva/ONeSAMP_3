@@ -225,6 +225,10 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 
 simulate_populations = SimulatePopulations()
 
+# R SCRIPT
+allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+fileALLPOP = open(allPopStats, 'w+')
+
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
     loci = inputFileStatistics.numLoci
@@ -234,8 +238,7 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-        intermediateFile)
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
     # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
     # if (DEBUG):
@@ -301,9 +304,6 @@ if __name__ == '__main__':
             except Exception as e:
                 print(f"Generated an exception: {e}")
 
-# R SCRIPT
-allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-fileALLPOP = open(allPopStats, 'w+')
 
 # Write all population stats to a file to pass as input for Rscript
 with fileALLPOP as result_file:
