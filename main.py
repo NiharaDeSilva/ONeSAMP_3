@@ -80,11 +80,11 @@ mutationRate = 0.000000012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 50
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe = 400
+upperNe = 250
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -303,6 +303,7 @@ try:
 except FileExistsError:
    pass
 fileALLPOP.close()
+
 
 
 #########################################
