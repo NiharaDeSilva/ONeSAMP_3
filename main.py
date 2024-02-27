@@ -77,8 +77,8 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-# mutationRate = 0.000000012
-mutationRate = 0.012
+mutationRate = 0.000000012
+#mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -234,36 +234,36 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
-    #     intermediateFile)
-    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq,
+        intermediateFile)
+    # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
-    #if (DEBUG):
-     #    print(cmd)
-    
-   # returned_value = os.system(cmd)
-
-    #if returned_value:
-     #    print("ERROR:main:Refactor did not run")
+    # if (DEBUG):
+    #     print(cmd)
+    #
+    # returned_value = os.system(cmd)
+    #
+    # if returned_value:
+    #     print("ERROR:main:Refactor did not run")
     # exit()
 
-# Execute the command
-#    if DEBUG:
-#        print(" ".join(cmd))
+    #Execute the command
+    if DEBUG:
+        print(" ".join(cmd))
 
-# Note: subprocess.run() by default does not interpret shell-specific syntax like redirection (>)
-# You need to either handle output redirection in Python or set shell=True (with caution)
-#    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
 
-#    if result.returncode != 0:
-#        print("ERROR:main:Refactor did not run")
-#        print(result.stderr)
+    if result.returncode != 0:
+        print("ERROR:main:Refactor did not run")
+        print(result.stderr)
 
 
 
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
+    refactorFileStatistics.filterIndividuals(indivMissing)
+    refactorFileStatistics.filterLoci(lociMissing)
     refactorFileStatistics.test_stat1()
     refactorFileStatistics.test_stat2()
     refactorFileStatistics.test_stat3()
@@ -293,14 +293,14 @@ except FileExistsError:
 if __name__ == '__main__':
     multiprocessing.set_start_method('fork')
     # Parallel process the random populations and add to a list
-    with concurrent.futures.ProcessPoolExecutor(max_workers=20000) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=64) as executor:
         # As each task completes, put the result in the queue
         for result in executor.map(processRandomPopulation, range(numOneSampTrials)):
             try:
                 results_list.append(result)
             except Exception as e:
                 print(f"Generated an exception: {e}")
-'''
+
 # R SCRIPT
 allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 fileALLPOP = open(allPopStats, 'w+')
@@ -310,11 +310,13 @@ with fileALLPOP as result_file:
     for result in results_list:
         result_file.write('\t'.join(result) + '\n')
 
-#try:
- #   shutil.rmtree(path, ignore_errors=True)
-#except FileExistsError:
- #   pass
-# fileALLPOP.close()
+ALL_POP_STATS_FILE = allPopStats
+
+try:
+   shutil.rmtree(path, ignore_errors=True)
+except FileExistsError:
+   pass
+fileALLPOP.close()
 
 
 #########################################
@@ -323,7 +325,6 @@ with fileALLPOP as result_file:
 # STARTING LINEAR REGRESSION
 #########################################
 
-ALL_POP_STATS_FILE = allPopStats
 
 rScriptCMD = "Rscript %s %s %s" % (FINAL_R_ANALYSIS, ALL_POP_STATS_FILE, inputPopStats)
 print(rScriptCMD)
@@ -457,7 +458,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # # RANDOM FOREST REGRESSION
 # ##########################
 # Initialize the Random Forest Regressor
-rf_regressor = RandomForestRegressor(n_estimators=1000, max_depth=80, random_state=42)
+rf_regressor = RandomForestRegressor(n_estimators=10000, max_depth=80, random_state=42)
 
 # Train the model on the training data
 rf_regressor.fit(X_train, y_train)
@@ -692,3 +693,4 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # print("----- %s seconds -----" % (time.time() - start_time))
 
 
+'''
