@@ -17,8 +17,8 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 echo "Running plot script on multiple CPU cores"
 
 
-folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V11"
+folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V13"
 
 #Iterate through the files in the folder
 for file in "$folder"/*; do
@@ -38,8 +38,11 @@ done
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop50x320
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop200x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop200x320
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop200x160 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop200x160
-#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop200x80 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop200x80
-
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop200x1000 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V11/genePop200x1000
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop200x2000 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V11/genePop200x2000
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop50x1000 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V11/genePop50x1000
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop100x1000 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V11/genePop100x1000
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop100x2000 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V11/genePop100x2000
 
 
 
