@@ -250,8 +250,8 @@ def processRandomPopulation(x):
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
-#    refactorFileStatistics.filterIndividuals(indivMissing)
-#    refactorFileStatistics.filterLoci(lociMissing)
+    refactorFileStatistics.filterIndividuals(indivMissing)
+    refactorFileStatistics.filterLoci(lociMissing)
     refactorFileStatistics.test_stat1()
     refactorFileStatistics.test_stat2()
     refactorFileStatistics.test_stat3()
