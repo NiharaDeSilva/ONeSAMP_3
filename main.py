@@ -26,7 +26,6 @@ from sklearn.model_selection import cross_val_predict
 
 # import matplotlib.pyplot as plt
 # from sklearn.metrics import PredictionErrorDisplay
-import subprocess
 
 NUMBER_OF_STATISTICS = 5
 t = 30
@@ -225,7 +224,7 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 
 simulate_populations = SimulatePopulations()
 
-# R SCRIPT
+# File for all population stats
 allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 fileALLPOP = open(allPopStats, 'w+')
 
@@ -241,25 +240,13 @@ def processRandomPopulation(x):
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
     # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
-    # if (DEBUG):
-    #     print(cmd)
-    #
-    # returned_value = os.system(cmd)
-    #
-    # if returned_value:
-    #     print("ERROR:main:Refactor did not run")
-    # exit()
+    if (DEBUG):
+        print(cmd)
 
-    #Execute the command
-    if DEBUG:
-        print(" ".join(cmd))
+    returned_value = os.system(cmd)
 
-    result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-
-    if result.returncode != 0:
+    if returned_value:
         print("ERROR:main:Refactor did not run")
-        print(result.stderr)
-
 
 
     refactorFileStatistics = statisticsClass()

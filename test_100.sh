@@ -33,9 +33,6 @@ output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V8"
 
 
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x40 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop50x40
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x80 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop50x80
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x160 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop50x160
-python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V8/genePop50x320
 
 
 
