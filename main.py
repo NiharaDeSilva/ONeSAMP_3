@@ -247,12 +247,11 @@ def processRandomPopulation(x):
     if returned_value:
         print("ERROR:main:Refactor did not run")
 
-
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
-    refactorFileStatistics.filterIndividuals(indivMissing)
-    refactorFileStatistics.filterLoci(lociMissing)
+#    refactorFileStatistics.filterIndividuals(indivMissing)
+#    refactorFileStatistics.filterLoci(lociMissing)
     refactorFileStatistics.test_stat1()
     refactorFileStatistics.test_stat2()
     refactorFileStatistics.test_stat3()
