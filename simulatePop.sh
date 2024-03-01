@@ -27,6 +27,8 @@ locis=(40 80 160 320)
 
 for outputSampleSize in "${outputSampleSizes[@]}"; do
   for loci in "${locis[@]}"; do
-      ./refactor -t1 -rC -b$NeVals -i1 -l1 -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "/blue/boucher/suhashidesilva/ONeSAMP_3/data/datavm/genePop${outputSampleSize}x${loci}"
+    for i in {1..10}; do
+      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.1/genePop${outputSampleSize}x${loci}_${i}"
+    done
   done
 done

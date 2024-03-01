@@ -3,7 +3,7 @@
 #SBATCH --mail-type=ALL          # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=suhashi.desilva@gmail.com     # Where to send mail
 #SBATCH --ntasks=1		      # Number of tasks
-#SBATCH --cpus-per-task=16             # Number of cores per task
+#SBATCH --cpus-per-task=32             # Number of cores per task
 #SBATCH --mem=50gb                     # Job memory request
 #SBATCH --time=24:00:00               # Time limit hrs:min:sec
 #SBATCH --output=serial_test_%j.log   # Standard output and error log
@@ -18,7 +18,7 @@ echo "Running plot script on multiple CPU cores"
 
 
 folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_msp"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V15"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V16"
 
 #Iterate through the files in the folder
 for file in "$folder"/*; do

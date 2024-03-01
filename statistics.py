@@ -115,7 +115,7 @@ class statisticsClass:
             newData = np.delete(data, deleteCol, axis = 1)
             self.data = newData
             self.numLoci = self.numLoci - len(deleteCol)
-            print("filter monomorphic loci")
+            #print("filter monomorphic loci")
 
 
     def get_file_last_line(self, inputfile):
@@ -150,7 +150,7 @@ class statisticsClass:
             newData = np.delete(data, deleteRow, axis = 0)
             self.data = newData
             self.sampleSize = self.sampleSize - len(deleteRow)
-            print("filter individuals")
+            #print("filter individuals")
 
 
 
@@ -173,7 +173,7 @@ class statisticsClass:
             newData = np.delete(data, deleteCol, axis = 1)
             self.data = newData
             self.numLoci = self.numLoci - len(deleteCol)
-            print("filter loci")
+           #print("filter loci")
 
 
     ######################################################################
