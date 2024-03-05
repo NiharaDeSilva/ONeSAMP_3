@@ -17,8 +17,8 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 echo "Running plot script on multiple CPU cores"
 
 
-folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.2"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V17"
+folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.3"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V19"
 
 #Iterate through the files in the folder
 for file in "$folder"/*; do

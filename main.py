@@ -75,16 +75,16 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-mutationRate = 0.000000012
-#mutationRate = 0.012
+#mutationRate = 0.000000012
+mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
-lowerNe = 50
+lowerNe = 150
 if (args.lNe):
     lowerNe = int(args.lNe)
 
-upperNe = 400
+upperNe = 250
 if (args.uNe):
     upperNe = int(args.uNe)
 
@@ -100,8 +100,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-rangeNe = "%d,%d" % (lowerNe, upperNe)
-#rangeNe = (lowerNe, upperNe)
+#rangeNe = "%d,%d" % (lowerNe, upperNe)
+rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -236,9 +236,9 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
-    # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
-
+   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
+    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+'''
     if (DEBUG):
         print(cmd)
 
@@ -246,7 +246,7 @@ def processRandomPopulation(x):
 
     if returned_value:
         print("ERROR:main:Refactor did not run")
-
+'''
     refactorFileStatistics = statisticsClass()
 
     refactorFileStatistics.readData(intermediateFile)
