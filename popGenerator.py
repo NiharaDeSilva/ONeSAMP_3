@@ -17,7 +17,7 @@ simulate_populations = SimulatePopulations()
 
 for sampleSize in outputSampleSizes:
     for loci in locis:
-        for i in range(1, 11):
+        for i in range(1, 31):
             file_name = f"genePop{sampleSize}x{loci}_{i}"
             path = os.path.join("../data/data_V1.3", file_name)
             simulate_populations.generate_input_population(sampleSize, loci, NeVal, mutationRate, path, duration_start, duration_range, missing_data_percentage)
