@@ -247,30 +247,30 @@ def processRandomPopulation(x):
     if returned_value:
         print("ERROR:main:Refactor did not run")
 '''
-    refactorFileStatistics = statisticsClass()
+   refactorFileStatistics = statisticsClass()
 
-    refactorFileStatistics.readData(intermediateFile)
-    refactorFileStatistics.filterIndividuals(indivMissing)
-    refactorFileStatistics.filterLoci(lociMissing)
-    refactorFileStatistics.test_stat1()
-    refactorFileStatistics.test_stat2()
-    refactorFileStatistics.test_stat3()
-    refactorFileStatistics.test_stat5()
-    refactorFileStatistics.test_stat4()
+   refactorFileStatistics.readData(intermediateFile)
+   refactorFileStatistics.filterIndividuals(indivMissing)
+   refactorFileStatistics.filterLoci(lociMissing)
+   refactorFileStatistics.test_stat1()
+   refactorFileStatistics.test_stat2()
+   refactorFileStatistics.test_stat3()
+   refactorFileStatistics.test_stat5()
+   refactorFileStatistics.test_stat4()
 
-    statistics1[x] = refactorFileStatistics.stat1
-    statistics2[x] = refactorFileStatistics.stat2
-    statistics3[x] = refactorFileStatistics.stat3
-    statistics5[x] = refactorFileStatistics.stat5
-    statistics4[x] = refactorFileStatistics.stat4
+   statistics1[x] = refactorFileStatistics.stat1
+   statistics2[x] = refactorFileStatistics.stat2
+   statistics3[x] = refactorFileStatistics.stat3
+   statistics5[x] = refactorFileStatistics.stat5
+   statistics4[x] = refactorFileStatistics.stat4
 
-    # Making file with stats from all populations
-    textList = []
-    textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
+   # Making file with stats from all populations
+   textList = []
+   textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
                 str(refactorFileStatistics.stat2),
                 str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
-    return textList
+   return textList
 
 
 try:
