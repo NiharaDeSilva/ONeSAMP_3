@@ -224,8 +224,8 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 simulate_populations = SimulatePopulations()
 
 # File for all population stats
-allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-fileALLPOP = open(allPopStats, 'w+')
+# allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+# fileALLPOP = open(allPopStats, 'w+')
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -290,7 +290,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print(f"Generated an exception: {e}")
 
-
+'''
 # Write all population stats to a file to pass as input for Rscript
 with fileALLPOP as result_file:
     for result in results_list:
@@ -677,4 +677,3 @@ print("----- %s seconds -----" % (time.time() - start_time))
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
 
-'''
