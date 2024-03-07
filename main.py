@@ -75,8 +75,8 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-#mutationRate = 0.000000012
-mutationRate = 0.012
+mutationRate = 0.000000012
+#mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -100,8 +100,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-#rangeNe = "%d,%d" % (lowerNe, upperNe)
-rangeNe = (lowerNe, upperNe)
+rangeNe = "%d,%d" % (lowerNe, upperNe)
+#rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -224,13 +224,8 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 simulate_populations = SimulatePopulations()
 
 # File for all population stats
-<<<<<<< HEAD
 # allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 # fileALLPOP = open(allPopStats, 'w+')
-=======
-#allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-#fileALLPOP = open(allPopStats, 'w+')
->>>>>>> 2b615cc (commit V19 files)
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -241,8 +236,8 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
-    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
+    #simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
     refactorFileStatistics = statisticsClass()
 
@@ -675,7 +670,3 @@ print("----- %s seconds -----" % (time.time() - start_time))
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 2b615cc (commit V19 files)
