@@ -223,7 +223,7 @@ class statisticsClass:
             numloci = data.shape[1]
             sampleSize = data.shape[0]
             new_di = [di[i] for i in range(len(di)) if i not in deletecol]
-            print(new_di)
+            #print(new_di)
             di = new_di
             sampCorrection = 2 / (numloci * (numloci - 1))
         for i in range(numloci):

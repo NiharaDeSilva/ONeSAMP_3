@@ -18,7 +18,7 @@ echo "Running plot script on multiple CPU cores"
 
 
 folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.3"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V19"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V20"
 
 #Iterate through the files in the folder
 for file in "$folder"/*; do
@@ -32,7 +32,7 @@ for file in "$folder"/*; do
 done
 
 
-#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop200x160 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/200x160
+#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.3/genePop50x40_1 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V19/50x40
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop200x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/200x320
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x160 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/50x160
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/50x320

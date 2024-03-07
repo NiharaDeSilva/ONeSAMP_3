@@ -224,8 +224,13 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 simulate_populations = SimulatePopulations()
 
 # File for all population stats
+<<<<<<< HEAD
 # allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
 # fileALLPOP = open(allPopStats, 'w+')
+=======
+#allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+#fileALLPOP = open(allPopStats, 'w+')
+>>>>>>> 2b615cc (commit V19 files)
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -238,39 +243,31 @@ def processRandomPopulation(x):
     intermediateFile = os.path.join(path, intermediateFilename)
    # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
     simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
-'''
-    if (DEBUG):
-        print(cmd)
 
-    returned_value = os.system(cmd)
+    refactorFileStatistics = statisticsClass()
 
-    if returned_value:
-        print("ERROR:main:Refactor did not run")
-'''
-   refactorFileStatistics = statisticsClass()
+    refactorFileStatistics.readData(intermediateFile)
+    refactorFileStatistics.filterIndividuals(indivMissing)
+    refactorFileStatistics.filterLoci(lociMissing)
+    refactorFileStatistics.test_stat1()
+    refactorFileStatistics.test_stat2()
+    refactorFileStatistics.test_stat3()
+    refactorFileStatistics.test_stat5()
+    refactorFileStatistics.test_stat4()
 
-   refactorFileStatistics.readData(intermediateFile)
-   refactorFileStatistics.filterIndividuals(indivMissing)
-   refactorFileStatistics.filterLoci(lociMissing)
-   refactorFileStatistics.test_stat1()
-   refactorFileStatistics.test_stat2()
-   refactorFileStatistics.test_stat3()
-   refactorFileStatistics.test_stat5()
-   refactorFileStatistics.test_stat4()
-
-   statistics1[x] = refactorFileStatistics.stat1
-   statistics2[x] = refactorFileStatistics.stat2
-   statistics3[x] = refactorFileStatistics.stat3
-   statistics5[x] = refactorFileStatistics.stat5
-   statistics4[x] = refactorFileStatistics.stat4
+    statistics1[x] = refactorFileStatistics.stat1
+    statistics2[x] = refactorFileStatistics.stat2
+    statistics3[x] = refactorFileStatistics.stat3
+    statistics5[x] = refactorFileStatistics.stat5
+    statistics4[x] = refactorFileStatistics.stat4
 
    # Making file with stats from all populations
-   textList = []
-   textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
+    textList = []
+    textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
                 str(refactorFileStatistics.stat2),
                 str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
-   return textList
+    return textList
 
 
 try:
@@ -678,3 +675,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2b615cc (commit V19 files)
