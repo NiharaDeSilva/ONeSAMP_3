@@ -1,3 +1,0 @@
-Below are the mean, median, and 95 credible limits for the posterior distribution of the effective population size from OneSamp
-Rscript ./scripts/rScript.r allPopStats_genePop50x40_19_30 inputPopStats_genePop50x40_19_30
-ERROR:main: Could not run Rscript.  FATAL ERROR.
