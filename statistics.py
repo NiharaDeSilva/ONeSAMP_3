@@ -150,7 +150,7 @@ class statisticsClass:
             newData = np.delete(data, deleteRow, axis = 0)
             self.data = newData
             self.sampleSize = self.sampleSize - len(deleteRow)
-            print("filter individuals")
+            #print("filter individuals")
 
 
 
@@ -173,7 +173,7 @@ class statisticsClass:
             newData = np.delete(data, deleteCol, axis = 1)
             self.data = newData
             self.numLoci = self.numLoci - len(deleteCol)
-            print("filter loci")
+            #print("filter loci")
 
 
     ######################################################################
@@ -223,7 +223,6 @@ class statisticsClass:
             numloci = data.shape[1]
             sampleSize = data.shape[0]
             new_di = [di[i] for i in range(len(di)) if i not in deletecol]
-            print(new_di)
             di = new_di
             sampCorrection = 2 / (numloci * (numloci - 1))
         for i in range(numloci):

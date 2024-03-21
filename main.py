@@ -19,7 +19,7 @@ from scipy import stats
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
-from scipy.stats import boxcox
+from scipy.stats.mstats import normaltest
 from scipy.special import inv_boxcox
 from sklearn.model_selection import cross_val_predict
 
@@ -75,8 +75,8 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-mutationRate = 0.000000012
-#mutationRate = 0.012
+#mutationRate = 0.000000012
+mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -100,8 +100,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-rangeNe = "%d,%d" % (lowerNe, upperNe)
-#rangeNe = (lowerNe, upperNe)
+#rangeNe = "%d,%d" % (lowerNe, upperNe)
+rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -236,16 +236,16 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
-    # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+    #cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
+    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
-    if (DEBUG):
-        print(cmd)
-
-    returned_value = os.system(cmd)
-
-    if returned_value:
-        print("ERROR:main:Refactor did not run")
+    # if (DEBUG):
+    #     print(cmd)
+    #
+    # returned_value = os.system(cmd)
+    #
+    # if returned_value:
+    #     print("ERROR:main:Refactor did not run")
 
 
     refactorFileStatistics = statisticsClass()
@@ -329,11 +329,13 @@ print("--- %s seconds ---" % (time.time() - start_time))
 ################################
 # LINEAR REGRESSION WITH SKLEARN
 ################################
-
+allPopStats = []
 # Assign input and all population stats to dataframes with column names
 allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+allPopStatistics.head()
 inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-
+allPopStats['Ne'] = pd.to_numeric(allPopStatistics['Ne'], errors='coerce')
+normaltest(allPopStats['Ne'].values)
 # Assign dependent and independent variables for regression model
 Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
 X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
