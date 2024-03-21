@@ -1,0 +1,39 @@
+
+-----------------LINEAR REGRESSION------------------
+MSE: 783.18
+RMSE: 27.99
+MAE: 24.17
+0.01 62.92 23.20 12.82 35.43
+
+Prediction: [215.16]
+95% confidence interval: [159.81, 270.5]
+
+Coefficients for each feature:
+Variable: Emean_exhyt: -4194.33
+Variable: Fix_index: 0.72
+Variable: Mlocus_homozegosity_mean: 0.14
+Variable: Mlocus_homozegosity_variance: 1.92
+Variable: Gametic_disequilibrium: 54.23
+----- 46.496073484420776 seconds -----
+
+-----------------RANDOM FOREST------------------
+MSE: 782.46
+RMSE: 27.97
+MAE: 23.65
+0.02 83.35 21.92 11.41 34.50
+
+Prediction:
+[207.76]
+
+Median Prediction: 
+[207.76]
+95% confidence interval:
+(159.1, 248.02)
+
+Feature importance
+Variable: Fix_index                      : 0.22
+Variable: Mlocus_homozegosity_variance   : 0.21
+Variable: Mlocus_homozegosity_mean       : 0.2
+Variable: Emean_exhyt                    : 0.19
+Variable: Gametic_disequilibrium         : 0.19
+----- 123.50619649887085 seconds -----

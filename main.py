@@ -19,7 +19,7 @@ from scipy import stats
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
-from scipy.stats.mstats import normaltest
+from scipy.stats import boxcox
 from scipy.special import inv_boxcox
 from sklearn.model_selection import cross_val_predict
 
@@ -184,7 +184,7 @@ numLoci = inputFileStatistics.numLoci
 sampleSize = inputFileStatistics.sampleSize
 
 ##Creating input file & List with intial statistics
-textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(inputFileStatistics.stat3),
+textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2),
             str(inputFileStatistics.stat4), str(inputFileStatistics.stat5)]
 inputStatsList = textList
 
@@ -224,8 +224,8 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 simulate_populations = SimulatePopulations()
 
 # File for all population stats
-# allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-# fileALLPOP = open(allPopStats, 'w+')
+#allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+#fileALLPOP = open(allPopStats, 'w+')
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -236,17 +236,16 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    #cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
+   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
     simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+   
+    #if (DEBUG):
+     #   print(cmd)
 
-    # if (DEBUG):
-    #     print(cmd)
-    #
-    # returned_value = os.system(cmd)
-    #
-    # if returned_value:
-    #     print("ERROR:main:Refactor did not run")
+    #returned_value = os.system(cmd)
 
+    #if returned_value:
+     #   print("ERROR:main:Refactor did not run")
 
     refactorFileStatistics = statisticsClass()
 
@@ -265,11 +264,11 @@ def processRandomPopulation(x):
     statistics5[x] = refactorFileStatistics.stat5
     statistics4[x] = refactorFileStatistics.stat4
 
-    # Making file with stats from all populations
+   # Making file with stats from all populations
     textList = []
-    textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
+    textList = [str(refactorFileStatistics.NE_VALUE),
+                str(refactorFileStatistics.stat1),
                 str(refactorFileStatistics.stat2),
-                str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
@@ -305,6 +304,7 @@ except FileExistsError:
 fileALLPOP.close()
 
 
+
 #########################################
 # FINISHING ALL POPULATIONS
 ########################################
@@ -329,16 +329,16 @@ print("--- %s seconds ---" % (time.time() - start_time))
 ################################
 # LINEAR REGRESSION WITH SKLEARN
 ################################
-allPopStats = []
+
 # Assign input and all population stats to dataframes with column names
-allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-allPopStatistics.head()
-inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-allPopStats['Ne'] = pd.to_numeric(allPopStatistics['Ne'], errors='coerce')
-normaltest(allPopStats['Ne'].values)
+#allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt','Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium'])
+#inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean', 'Gametic_disequilibrium'])
+
 # Assign dependent and independent variables for regression model
-Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
-X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
+Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium']])
+X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium']])
 y = np.array(allPopStatistics['Ne'])
 y = np.array([float(value) for value in y if float(value) > 0])
 
@@ -447,6 +447,7 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # ##########################
 # Initialize the Random Forest Regressor
 rf_regressor = RandomForestRegressor(n_estimators=1000, max_depth=80, random_state=42)
+
 # Train the model on the training data
 rf_regressor.fit(X_train, y_train)
 
@@ -678,4 +679,3 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # print(f"{lower:.2f}, {upper:.2f}")
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
-
