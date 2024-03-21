@@ -75,8 +75,8 @@ minAlleleFreq = 0.05
 if (args.m):
     minAlleleFreq = float(args.m)
 
-mutationRate = 0.000000012
-#mutationRate = 0.012
+#mutationRate = 0.000000012
+mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -100,8 +100,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-rangeNe = "%d,%d" % (lowerNe, upperNe)
-#rangeNe = (lowerNe, upperNe)
+#rangeNe = "%d,%d" % (lowerNe, upperNe)
+rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -184,7 +184,7 @@ numLoci = inputFileStatistics.numLoci
 sampleSize = inputFileStatistics.sampleSize
 
 ##Creating input file & List with intial statistics
-textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2), str(inputFileStatistics.stat3),
+textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2),
             str(inputFileStatistics.stat4), str(inputFileStatistics.stat5)]
 inputStatsList = textList
 
@@ -224,8 +224,8 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 simulate_populations = SimulatePopulations()
 
 # File for all population stats
-# allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-# fileALLPOP = open(allPopStats, 'w+')
+#allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+#fileALLPOP = open(allPopStats, 'w+')
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -236,8 +236,16 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
-    #simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
+    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+   
+    #if (DEBUG):
+     #   print(cmd)
+
+    #returned_value = os.system(cmd)
+
+    #if returned_value:
+     #   print("ERROR:main:Refactor did not run")
 
     refactorFileStatistics = statisticsClass()
 
@@ -258,9 +266,9 @@ def processRandomPopulation(x):
 
    # Making file with stats from all populations
     textList = []
-    textList = [str(refactorFileStatistics.NE_VALUE), str(refactorFileStatistics.stat1),
+    textList = [str(refactorFileStatistics.NE_VALUE),
+                str(refactorFileStatistics.stat1),
                 str(refactorFileStatistics.stat2),
-                str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
@@ -323,12 +331,14 @@ print("--- %s seconds ---" % (time.time() - start_time))
 ################################
 
 # Assign input and all population stats to dataframes with column names
-allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+#allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt','Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium'])
+#inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
+inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean', 'Gametic_disequilibrium'])
 
 # Assign dependent and independent variables for regression model
-Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
-X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium']])
+Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium']])
+X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium']])
 y = np.array(allPopStatistics['Ne'])
 y = np.array([float(value) for value in y if float(value) > 0])
 
@@ -669,4 +679,3 @@ print("----- %s seconds -----" % (time.time() - start_time))
 # print(f"{lower:.2f}, {upper:.2f}")
 #
 # print("----- %s seconds -----" % (time.time() - start_time))
-
