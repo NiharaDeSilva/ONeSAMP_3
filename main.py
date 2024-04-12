@@ -22,6 +22,8 @@ from sklearn.preprocessing import StandardScaler
 from scipy.stats import boxcox
 from scipy.special import inv_boxcox
 from sklearn.model_selection import cross_val_predict
+from sklearn.linear_model import Ridge, RidgeCV, LassoCV
+
 
 # import matplotlib.pyplot as plt
 # from sklearn.metrics import PredictionErrorDisplay
@@ -71,12 +73,12 @@ args = parser.parse_args()
 if (args.t):
     t = int(args.t)
 
-minAlleleFreq = 0.05
+minAlleleFreq = 0.1
 if (args.m):
     minAlleleFreq = float(args.m)
 
-#mutationRate = 0.000000012
-mutationRate = 0.012
+mutationRate = 0.000000012
+#mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -100,8 +102,8 @@ if (int(upperNe) < 1):
     print("ERROR:main:upperNe must be a positive value. Fatal Error")
     exit()
 
-#rangeNe = "%d,%d" % (lowerNe, upperNe)
-rangeNe = (lowerNe, upperNe)
+rangeNe = "%d,%d" % (lowerNe, upperNe)
+#rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -184,7 +186,7 @@ numLoci = inputFileStatistics.numLoci
 sampleSize = inputFileStatistics.sampleSize
 
 ##Creating input file & List with intial statistics
-textList = [str(inputFileStatistics.stat1), str(inputFileStatistics.stat2),
+textList = [str(inputFileStatistics.stat1),str(inputFileStatistics.stat2), str(inputFileStatistics.stat3),
             str(inputFileStatistics.stat4), str(inputFileStatistics.stat5)]
 inputStatsList = textList
 
@@ -224,8 +226,8 @@ statistics4 = [0 for x in range(numOneSampTrials)]
 simulate_populations = SimulatePopulations()
 
 # File for all population stats
-#allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
-#fileALLPOP = open(allPopStats, 'w+')
+allPopStats = "allPopStats_" + getName(fileName) + "_" + str(t)
+fileALLPOP = open(allPopStats, 'w+')
 
 # Generate random populations and calculate summary statistics
 def processRandomPopulation(x):
@@ -236,16 +238,16 @@ def processRandomPopulation(x):
     # change the intermediate file name by process id
     intermediateFilename = str(process_id) + "_intermediate_" + getName(fileName) + "_" + str(t)
     intermediateFile = os.path.join(path, intermediateFilename)
-   # cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
-    simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+    cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, rangeNe, minAlleleFreq, intermediateFile)
+    #simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
    
-    #if (DEBUG):
-     #   print(cmd)
+    if (DEBUG):
+        print(cmd)
 
-    #returned_value = os.system(cmd)
+    returned_value = os.system(cmd)
 
-    #if returned_value:
-     #   print("ERROR:main:Refactor did not run")
+    if returned_value:
+        print("ERROR:main:Refactor did not run")
 
     refactorFileStatistics = statisticsClass()
 
@@ -267,8 +269,8 @@ def processRandomPopulation(x):
    # Making file with stats from all populations
     textList = []
     textList = [str(refactorFileStatistics.NE_VALUE),
-                str(refactorFileStatistics.stat1),
-                str(refactorFileStatistics.stat2),
+                str(refactorFileStatistics.stat1),str(inputFileStatistics.stat2),
+                str(refactorFileStatistics.stat3),
                 str(refactorFileStatistics.stat4), str(refactorFileStatistics.stat5)]
     return textList
 
@@ -289,7 +291,7 @@ if __name__ == '__main__':
             except Exception as e:
                 print(f"Generated an exception: {e}")
 
-'''
+
 # Write all population stats to a file to pass as input for Rscript
 with fileALLPOP as result_file:
     for result in results_list:
@@ -325,36 +327,32 @@ if (DEBUG):
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
-'''
+
 ################################
 # LINEAR REGRESSION WITH SKLEARN
 ################################
 
 # Assign input and all population stats to dataframes with column names
-#allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt','Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium'])
-#inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Mlocus_homozegosity_variance', 'Gametic_disequilibrium'])
-inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean', 'Gametic_disequilibrium'])
-
-# Assign dependent and independent variables for regression model
-Z = np.array(inputStatsList[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium']])
-X = np.array(allPopStatistics[['Emean_exhyt', 'Fix_index', 'Mlocus_homozegosity_mean', 'Gametic_disequilibrium']])
+allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium'])
+inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium'])
+Z = np.array(inputStatsList[['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium']])
+X = np.array(allPopStatistics[['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium']])
 y = np.array(allPopStatistics['Ne'])
 y = np.array([float(value) for value in y if float(value) > 0])
-
-# #Normalize the data
-# scaler = StandardScaler()
-# X_scaled = scaler.fit_transform(X)
-# Z_scaled = scaler.fit_transform(Z)
-#
-# #Apply box-cox transformation
-# y_transformed, lambda_value = boxcox(y)
-
-#Split train and test data for cross validation
-# X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_transformed, test_size=0.2, random_state=0)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=40)
-
-#
+#Normalize the data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+Z_scaled = scaler.transform(Z)
+alphas=np.logspace(5, 15, 13)
+ridge_model = RidgeCV(alphas, cv=5)
+ridge_model.fit(X_train, y_train)
+print("Selected alpha: ", ridge_model.alpha_)
+prediction_ridge = ridge_model.predict(Z)
+#prediction_lasso = lasso_model.predict(Z)
+print("regularized regression:" , prediction_ridge)
+#print(“Lasso regression prediction: “, prediction_lasso)
+'''
 # Fit the linear regression model
 model = LinearRegression()
 result = model.fit(X_train, y_train)
@@ -513,7 +511,7 @@ print("\nFeature importance")
 
 
 print("----- %s seconds -----" % (time.time() - start_time))
-
+'''
 #
 # ##########################
 # # END
