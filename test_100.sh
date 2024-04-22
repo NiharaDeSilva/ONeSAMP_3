@@ -17,22 +17,22 @@ chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 echo "Running plot script on multiple CPU cores"
 
 
-folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.3"
-output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V20"
+folder="/blue/boucher/suhashidesilva/ONeSAMP_3/data/genePop50x40"
+output="/blue/boucher/suhashidesilva/ONeSAMP_3/output/V46"
 
-#Iterate through the files in the folder
-for file in "$folder"/*; do
-    if [ -f "$file" ]; then
-        filename=$(basename -- "$file")
-        filename_no_extension="${filename%.*}"
-        output_file="$output/${filename_no_extension}"
-        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o "$file" > "$output_file"
-        echo "Processed $file and saved output to $output_file"
-    fi
-done
+##Iterate through the files in the folder
+#for file in "$folder"/*; do
+#    if [ -f "$file" ]; then
+#        filename=$(basename -- "$file")
+#        filename_no_extension="${filename%.*}"
+#        output_file="$output/${filename_no_extension}"
+#        python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o "$file" > "$output_file"
+#        echo "Processed $file and saved output to $output_file"
+#    fi
+#done
 
 
-#python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.3/genePop50x40_1 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V19/50x40
+python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.3/genePop50x40/ > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V19/50x40
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop200x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/200x320
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x160 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/50x160
 #python /blue/boucher/suhashidesilva/ONeSAMP_3/main.py --s 20000 --o /blue/boucher/suhashidesilva/ONeSAMP_3/data/datav1/genePop50x320 > /blue/boucher/suhashidesilva/ONeSAMP_3/output/V13/50x320

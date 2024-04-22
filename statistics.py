@@ -247,7 +247,7 @@ class statisticsClass:
 
                 denominator = (ai * (1 - ai) + di[i]) * (bj * (1 - bj) + di[j])
 
-                r_intermdediate = 4*float((jointAB - ai*bj) ** 2) / denominator
+                r_intermdediate = float((jointAB - ai*bj) ** 2) / denominator
 
                 r += r_intermdediate
 

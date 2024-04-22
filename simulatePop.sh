@@ -22,13 +22,13 @@ microsatsOrSNPs=s
 NeVals="00200"
 numPOP="00256"
 
-outputSampleSizes=(50 100 200) 
-locis=(40 80 160 320)
+outputSampleSizes=(50 200)
+locis=(40 160)
 
 for outputSampleSize in "${outputSampleSizes[@]}"; do
   for loci in "${locis[@]}"; do
-    for i in {11..30}; do
-      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V1.2/genePop${outputSampleSize}x${loci}_${i}"
+    for i in {1..100}; do
+      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V2/genePop${outputSampleSize}x${loci}_${i}"
     done
   done
 done
