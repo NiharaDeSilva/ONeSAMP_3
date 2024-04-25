@@ -75,7 +75,6 @@ if (args.m):
     minAlleleFreq = float(args.m)
 
 mutationRate = 0.000000012
-#mutationRate = 0.012
 if (args.r):
     mutationRate = float(args.r)
 
@@ -100,7 +99,6 @@ if (int(upperNe) < 1):
     exit()
 
 rangeNe = "%d,%d" % (lowerNe, upperNe)
-#rangeNe = (lowerNe, upperNe)
 
 lowerTheta = 0.000048
 if (args.lT):
@@ -144,9 +142,6 @@ if (DEBUG):
     print("Start calculation of statistics for input population")
 
 rangeTheta = "%f,%f" % (lowerTheta, upperTheta)
-duration_start=2
-duration_range=6
-missing_data_percentage=0.2
 
 #########################################
 # STARTING INITIAL POPULATION
