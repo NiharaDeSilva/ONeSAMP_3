@@ -14,21 +14,23 @@ pwd; hostname; date
 module load R/4.1
 chmod +rwx /blue/boucher/suhashidesilva/ONeSAMP_3/build/OneSamp
 
-ONESAMP2COAL_MINALLELEFREQUENCY=0.05
-mutationRate="0.000000012"
-rangeNe=100,500
-theta=0.000048,0.0048
-microsatsOrSNPs=s
-NeVals="00200"
-numPOP="00256"
+lociList=(80 320)
+sampleSizeList=(50 200)
+numReps=100
+for loci in "${lociList[@]}"; do
+  for sampleSize in "${sampleSizeList[@]}"; do
+    for ((i=1; i<=$numReps; i++)); do
+      outputFileName="genePop${sampleSize}Ix${loci}L_${i}"
+      ONESAMP2COAL_MINALLELEFREQUENCY=0.05
+      mutationRate="0.000000012"
+      rangeNe=150,250
+      theta=0.000048,0.0048
+      microsatsOrSNPs=s
+      NeVals="00200"
+      numPOP="00050"
+      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$sampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > /blue/boucher/suhashidesilva/Second/ONeSAMP_3/data/data_V3/$outputFileName
 
-outputSampleSizes=(50 200)
-locis=(40 160)
-
-for outputSampleSize in "${outputSampleSizes[@]}"; do
-  for loci in "${locis[@]}"; do
-    for i in {1..100}; do
-      ./refactor -t1 -rC -b$NeVals -d1 -u$mutationRate -v${theta} -$microsatsOrSNPs -l$loci -i$outputSampleSize -o1 -f$ONESAMP2COAL_MINALLELEFREQUENCY -p > "/blue/boucher/suhashidesilva/ONeSAMP_3/data/data_V2/genePop${outputSampleSize}x${loci}_${i}"
+      sleep 1
     done
   done
 done

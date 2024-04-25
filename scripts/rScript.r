@@ -202,6 +202,10 @@ datamatrix <- cbind(m,ld,lnb,hetx,xhet)
 result1 <- makepd5(targetStatVals, neBoxCox, datamatrix, 0.05, 1:(dim(datamatrix)[1]), F)
 result1$x <- (lambda*result1$x+1)^(1/lambda) # Inverse Box Cox transform
 
+# Assuming Ne is a specific value you have defined or calculated
+count_higher <- sum(result1$x > 200)
+count_lower <- sum(result1$x < 200)
+
 # Statistics to compute
 mean <- (lambda*result1$predmean+1)^(1/lambda) # Inverse Box Cox transform
 median <- median(result1$x)
@@ -220,4 +224,8 @@ invisible(cat(sprintf("%.2f      %.2f      %.2f      %.2f      %.2f      %.2f\n"
 #library(locfit)
 #mode <- loc1stats(result1$x,prob=0.05)[1]
 #hpdlu <- loc1stats(result1$x,prob=0.05)[2:3]
+# Printing out the counts
+cat(sprintf("Count higher than Ne: %d\n", count_higher))
+cat(sprintf("Count lower than Ne: %d\n", count_lower))
+
 q()

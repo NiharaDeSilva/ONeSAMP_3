@@ -1,5 +1,0 @@
-Below are the mean, median, and 95 credible limits for the posterior distribution of the effective population size from OneSamp
-min        max        mean        median      lower95CL   upper95CL
-156.89      274.01      207.36      212.42      160.57      262.96
-Rscript ./scripts/rScript.r allPopStats_genePop100x320_23_30 inputPopStats_genePop100x320_23_30
---- 412.1678307056427 seconds ---
