@@ -297,7 +297,7 @@ except FileExistsError:
    pass
 fileALLPOP.close()
 
-'''
+
 
 #########################################
 # FINISHING ALL POPULATIONS
@@ -329,7 +329,7 @@ allPopStatistics = pd.DataFrame(results_list, columns=['Ne', 'Emean_exhyt','Fix_
 # inputStatsList = pd.DataFrame([inputStatsList], columns=['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium'])
 X_train = np.array(allPopStatistics[['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium']])
 y = np.array(allPopStatistics['Ne'])
-<<<<<<< HEAD
+
 y_train = np.array([float(value) for value in y if float(value) > 0])
 # X_train, _, y_train, _ = train_test_split(X, y, test_size=0.0, random_state=40)
 
@@ -338,64 +338,38 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X_train)
 
 # Create Ridge regression model with cross-validation over alpha values
-ridge_model = RidgeCV(alphas=np.logspace(5, 15, 13), cv=5)
+ridge_model = RidgeCV(alphas=np.logspace(0, 12, 13), cv=5)
 ridge_model.fit(X_scaled, y_train)
-print("Selected alpha: ", ridge_model.alpha_)
-
-# Normalize and predict for each input set
-results = []
-for index, row in input_df.iterrows():
-    Z = np.array(row[['Emean_exhyt','Fix_index','Mlocus_homozegosity_mean','Mlocus_homozegosity_variance','Gametic_disequilibrium']]).reshape(1, -1)
-    Z_scaled = scaler.transform(Z)
-    prediction_ridge = ridge_model.predict(Z_scaled)
-    results.append(prediction_ridge[0])
-
-# Print or store the results
-print("Regularized regression predictions:", results)
-
-
-'''
-# Fit the linear regression model
-
-y = np.array([float(value) for value in y if float(value) > 0])
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=40)
-
-#Normalize the data
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-Z_scaled = scaler.transform(Z)
-
-model = LinearRegression()
-result = model.fit(X_train, y_train)
-
-#dump(result, ‘linear_regression.joblib’)
-#y_pred = result.predict(X_test)
+dump(ridge_model, 'ridge_200.joblib')
 #num_greater = np.sum(y_pred > y_test)
 #print(num_greater)
 
-#y_res = result.predict(Z)
-#print(“predict result: “, y_res)
-alphas=np.logspace(5, 10, 10)
-ridge_model = RidgeCV(alphas, cv=5)
-
-ridge_model.fit(X_train, y_train)
-dump(ridge_model, 'ridge_4_14.joblib')
-# print("Selected alpha: ", ridge_model.alpha_)
-
-#y_pred_test = ridge_model.predict(X_test)
-#print("Selected alpha: ", ridge_model.alpha_)
-#prediction_ridge = ridge_model.predict(Z)
-#prediction_lasso = lasso_model.predict(Z)
-#print("regularized regression: ", prediction_ridge)
-#print(“Lasso regression prediction: “, prediction_lasso)
-
-
 '''
-
 # Fit the linear regression model
-model = LinearRegression()
-result = model.fit(X_train, y_train)
-print(f"\n-----------------LINEAR REGRESSION------------------")
+#dump(result, ‘linear_regression.joblib’)
+#y_pred = result.predict(X_test)
+
+# prediction_ridge = ridge_model.predict(Z_scaled)
+# print("Selected alpha: ", ridge_model.alpha_)
+# print("regularized regression: ", prediction_ridge)
+# 
+# n_bootstraps = 1000
+# # Array to store the predictions for each bootstrap sample
+# predictions_samples = np.zeros((n_bootstraps, Z_scaled.shape[0]))
+# 
+# # Perform bootstrap for prediction intervals
+# for i in range(n_bootstraps):
+#     # Bootstrap sample indices
+#     indices = resample(np.arange(Z_scaled.shape[0]))
+#     # Make predictions on the bootstrap sample
+#     predictions_samples[i] = ridge_model.predict(Z_scaled[indices])
+# 
+# # Calculate 95% prediction intervals for each prediction
+# prediction_intervals = np.percentile(predictions_samples, [2.5, 97.5], axis=0)
+# 
+# # Display prediction intervals for each prediction
+# print("95% prediction intervals for each prediction:")
+# print(prediction_intervals)
 
 #Predict for Test values
 y_pred = result.predict(X_test)
@@ -471,247 +445,14 @@ for feature, coef in zip(inputStatsList.columns, coefficients):
 
 print("----- %s seconds -----" % (time.time() - start_time))
 
-
 # Deleting temporary files
 # delete1 = "rm " + inputPopStats
 # delete_INPUTPOP = os.system(delete1)
 
 # # delete2 = "rm " + allPopStats
 # # delete_ALLPOP = os.system(delete2)
-# ##########################
-# # RANDOM FOREST REGRESSION
-# ##########################
-# Initialize the Random Forest Regressor
-rf_regressor = RandomForestRegressor(n_estimators=1000, max_depth=80, random_state=42)
 
-# Train the model on the training data
-rf_regressor.fit(X_train, y_train)
-
-print(f"\n-----------------RANDOM FOREST------------------")
-
-# Make predictions on test data
-y_pred = rf_regressor.predict(X_test)
-
-# Calculate errors
-absolute_errors = np.abs(y_pred - y_test)
-min = np.min(absolute_errors)
-max = np.max(absolute_errors)
-q1 = np.percentile(absolute_errors, 25)
-median = np.percentile(absolute_errors, 50)
-q3 = np.percentile(absolute_errors, 75)
-mae = np.mean(absolute_errors)
-
-# Predict the Ne value for input population
-rf_prediction = rf_regressor.predict(Z)
-
-# Using Mean Squared Error to evaluate the model
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-mae = mean_absolute_error(y_test, y_pred)
-print(f"MSE: {mse:.2f}")
-print(f"RMSE: {rmse:.2f}")
-print(f"MAE: {mae:.2f}")
-print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
-
-
-print(f"\nPrediction:")
-print(rf_prediction.round(decimals=2))
-
-# Calculate confidence interval
-# Get the predictions from each tree for the new data point
-tree_predictions = np.array([tree.predict(Z) for tree in rf_regressor.estimators_])
-
-# Calculate median
-median_prediction = np.median(tree_predictions, axis=0)
-print(f"\nMedian Prediction: ")
-print(rf_prediction.round(decimals=2))
-
-# Calculate the 2.5th and 97.5th percentiles for the 95% confidence interval
-lower_bound = np.percentile(tree_predictions, 2.5)
-upper_bound = np.percentile(tree_predictions, 97.5)
-
-# Output the confidence interval
-print(f"95% confidence interval:")
-print(f"{lower_bound.round(decimals=2), upper_bound.round(decimals=2)}")
-
-# Get numerical feature importances
-importances = list(rf_regressor.feature_importances_)
-
-# List of tuples with variable and importance
-feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(inputStatsList.columns, importances)]
-
-# Sort the feature importances by most important first
-feature_importances = sorted(feature_importances, key=lambda x: x[1], reverse=True)
-
-# Print out the feature and importances
-print("\nFeature importance")
-[print('Variable: {:30} : {}'.format(*pair)) for pair in feature_importances]
-
-
-print("----- %s seconds -----" % (time.time() - start_time))
 '''
-#
-# ##########################
-# # END
-# #########################
-# # FNN
-# #########################
-# import copy
-# #from skorch import NeuralNetRegressor
-# #from sklearn.model_selection import GridSearchCV
-# #import matplotlib.pyplot as plt
-# import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# import tqdm
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.model_selection import ParameterGrid
-#
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# print(device)
-#
-# # Convert to PyTorch tensors
-# X_train = X_train.astype(np.float32)
-# X_test = X_test.astype(np.float32)
-#
-# # train-test split for model evaluation
-# # X_train_raw, X_test_raw, y_train, y_test = train_test_split(X, y, train_size=0.7, shuffle=True)
-#
-# # Standardizing data
-# # scaler = StandardScaler()
-# # scaler.fit(X_train_raw)
-# # X_train = scaler.transform(X_train_raw)
-# # X_test = scaler.transform(X_test_raw)
-#
-#
-# X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
-# X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
-# y_train = y_train.astype(np.float32)
-# y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1).to(device)
-# y_test = y_test.astype(np.float32)
-# y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1).to(device)
-# Z = Z.astype(np.float32)
-# Z = torch.tensor(Z, dtype=torch.float32).to(device)
-#
-# # # Convert to 2D PyTorch tensors
-# # X_train = torch.tensor(X_train, dtype=torch.float32)
-# # y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
-# # X_test = torch.tensor(X_test, dtype=torch.float32)
-# # y_test = torch.tensor(y_test, dtype=torch.float32).reshape(-1, 1)
-#
-# # Define the model
-# model = nn.Sequential(
-#     nn.Linear(5, 100),
-#     nn.ReLU(),
-#     nn.Linear(100, 200),
-#     nn.ReLU(),
-#     nn.Linear(200, 100),
-#     nn.ReLU(),
-#     nn.Linear(100, 20),
-#     nn.ReLU(),
-#     nn.Linear(20, 5),
-#     nn.ReLU(),
-#     nn.Linear(5, 1)
-# )
-# model.to(device)
-#
-# # loss function and optimizer
-# loss_fn = nn.MSELoss()  # mean square error
-# optimizer = optim.Adam(model.parameters(), lr=0.01)
-#
-# n_epochs = 100   # number of epochs to run
-# batch_size = 10  # size of each batch
-# batch_start = torch.arange(0, len(X_train), batch_size)
-#
-# # Hold the best model
-# best_mse = np.inf   # init to infinity
-# best_weights = None
-# history = []
-#
-# for epoch in range(n_epochs):
-#     model.train()
-#     with tqdm.tqdm(batch_start, unit="batch", mininterval=0, disable=True) as bar:
-#         bar.set_description(f"Epoch {epoch}")
-#         for start in bar:
-#             # take a batch
-#             X_batch = X_train[start:start+batch_size]
-#             y_batch = y_train[start:start+batch_size]
-#             # forward pass
-#             y_pred = model(X_batch)
-#             loss = loss_fn(y_pred, y_batch)
-#             # backward pass
-#             optimizer.zero_grad()
-#             loss.backward()
-#             # update weights
-#             optimizer.step()
-#             # print progress
-#             bar.set_postfix(mse=float(loss))
-#     # evaluate accuracy at end of each epoch
-#     model.eval()
-#     y_pred = model(X_test)
-#     mse = loss_fn(y_pred, y_test)
-#     mse = float(mse)
-#     history.append(mse)
-#     if mse < best_mse:
-#         best_mse = mse
-#         best_weights = copy.deepcopy(model.state_dict())
-#
-# print(f"\n-----------------NEURAL NETWORK------------------")
-#
-# # restore model and return best accuracy
-# model.load_state_dict(best_weights)
-# print("MSE: %.2f" % best_mse)
-# print("RMSE: %.2f" % np.sqrt(best_mse))
-#
-# # Convert tensors to numpy arrays
-# y_test = y_test.numpy()
-# y_pred = y_pred.detach().numpy()  # Ensure y_pred is detached from the computation graph
-#
-# # Calculate absolute errors
-# absolute_errors = np.abs(y_pred - y_test)
-# min = np.min(absolute_errors)
-# max = np.max(absolute_errors)
-# q1 = np.percentile(absolute_errors, 25)
-# median = np.percentile(absolute_errors, 50)
-# q3 = np.percentile(absolute_errors, 75)
-# mae = np.mean(absolute_errors)
-# print(f"MAE: {mae:.2f}")
-# print(f"{min:.2f} {max:.2f} {median:.2f} {q1:.2f} {q3:.2f}")
-# # ##########################
-# #plt.plot(history)
-# #plt.show()
-#
-# model.eval()
-#
-# # Number of simulations
-# n_simulations = 100
-# # Array to store predictions
-# predictions = np.zeros(n_simulations)
-#
-# # Standard deviation of noise to add to Z for simulations
-# # Adjust the scale based on your expected input variability
-# noise_std = 0.01 * torch.std(Z)
-#
-# for i in range(n_simulations):
-#     # Add random noise to Z
-#     random = torch.randn(Z.shape)
-#     Z_perturbed = Z + (random * noise_std)
-#     # Predict with model
-#     with torch.no_grad():
-#         pred = model(Z_perturbed)
-#     # Ensure pred is converted to a scalar if necessary, assuming pred should be a single value
-#     pred_scalar = pred.numpy().flatten()[0]  # Flatten and take the first element to ensure scalar conversion
-#     predictions[i] = pred_scalar
-#
-# # Calculate confidence interval
-# lower = np.percentile(predictions, 2.5)
-# upper = np.percentile(predictions, 97.5)
-#
-#
-# print(f"Neural network prediction: ")
-# print(f"{np.mean(predictions).round(2)}")
-# print(f"median prediction: {np.median(predictions).round(2)}")
-# print(f"95% confidence interval:")
-# print(f"{lower:.2f}, {upper:.2f}")
-#
-# print("----- %s seconds -----" % (time.time() - start_time))
+print("----- %s seconds -----" % (time.time() - start_time))
+
+
