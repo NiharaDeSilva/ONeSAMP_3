@@ -5,21 +5,28 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
     # Create an initial population of diploid individuals
     population = fp11.DiploidPopulation(pop_size, num_loci)
 
-    # Define the mutation rate and recombination rate (if applicable)
-    mut_model = fp11.MutationModel(mutation_rate=mutation_rate)
+    # Define the mutation rate
+    mutation_rate_per_locus = mutation_rate / num_loci
+
+    # Define the mutation model using fwdpy11's mutation mechanism
+    mut_model = fp11.Mutation(
+        s=0.0,  # Assuming neutral mutations for simplicity
+        h=0.5,  # Heterozygosity (neutral for simplicity)
+        origin_type=fp11.MutationOriginType.random_mutation,
+        origin_prob=mutation_rate_per_locus
+    )
 
     # Define the parameters for the simulation
     params = fp11.ModelParams(
         N=pop_size,
-        theta=2 * pop_size * mutation_rate * num_loci,  # θ = 4Nμ in diploid model
-        rho=0.0,  # Recombination rate (set to 0 for no recombination)
+        mu=mutation_rate_per_locus,
         seed=np.random.randint(1, 100000),
         demography=np.ones(num_generations + 1) * pop_size,  # Constant population size
     )
 
     # Simulate the population over the specified generations
     rng = fp11.GSLrng(params.seed)
-    fwdpy11.wright_fisher(rng, population, params, num_generations)
+    fp11.wright_fisher(rng, population, params, num_generations)
 
     # Sample individuals for SNP data
     sampled_individuals = population.sample(num_individuals)
@@ -48,8 +55,8 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
 # Parameters
 num_generations = 8
 pop_size = 100  # Effective population size
-num_individuals = 40  # Number of individuals to sample SNP data from
-num_loci = 50  # Number of loci
+num_individuals = 10  # Number of individuals to sample SNP data from
+num_loci = 1000  # Number of loci
 mutation_rate = 1e-8  # Effective mutation rate per site per generation
 
 # Run simulation
