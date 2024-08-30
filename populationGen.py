@@ -8,8 +8,8 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
     # Create the population
     population = fp11.DiploidPopulation(pop_size, num_loci)
 
-    # Define the mutation rate per generation
-    theta = 4 * pop_size * mutation_rate
+    # Create a genetic value function (gvalue) for the simulation
+    gvalue = fp11.DiploidGeneticValue()
 
     # Create a simulation parameter object
     params = fp11.ModelParams(
@@ -18,7 +18,7 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
         recregions=[],  # No recombination regions
         rates=(mutation_rate, 0, 0),  # mutation rate, no recombination, no migration
         demography=demography,
-        theta=theta
+        gvalue=gvalue
     )
 
     # Simulate the population over the specified generations
