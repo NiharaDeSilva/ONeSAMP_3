@@ -1,58 +1,59 @@
-import fwdpy11
-import fwdpy11.model_params as mp
-import fwdpy11.wright_fisher as wf
+import fwdpy11 as fp11
 import numpy as np
 
-# Set up parameters
-pop_size = 100  # Reduced for simplicity
-genome_length = 1e6  # Length of the genome in base pairs
+def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
+    # Create an initial population of diploid individuals
+    population = fp11.DiploidPopulation(pop_size, num_loci)
+
+    # Define the mutation rate and recombination rate (if applicable)
+    mut_model = fp11.MutationModel(mutation_rate=mutation_rate)
+
+    # Define the parameters for the simulation
+    params = fp11.ModelParams(
+        N=pop_size,
+        theta=2 * pop_size * mutation_rate * num_loci,  # θ = 4Nμ in diploid model
+        rho=0.0,  # Recombination rate (set to 0 for no recombination)
+        seed=np.random.randint(1, 100000),
+        demography=np.ones(num_generations + 1) * pop_size,  # Constant population size
+    )
+
+    # Simulate the population over the specified generations
+    rng = fp11.GSLrng(params.seed)
+    fwdpy11.wright_fisher(rng, population, params, num_generations)
+
+    # Sample individuals for SNP data
+    sampled_individuals = population.sample(num_individuals)
+
+    # Define nucleotide bases
+    nucleotides = ["A", "C", "T", "G"]
+
+    # Convert binary data to A, C, T, G format and combine alleles
+    combined_snp_data = []
+    for ind in sampled_individuals:
+        genotype = []
+        for chrom in [ind.a1, ind.a2]:  # diploid has two alleles
+            alleles = np.random.choice(nucleotides, num_loci)  # Randomly assign nucleotides
+            for mutation in chrom.mutations:
+                # Randomly pick a nucleotide different from the current one at the mutation position
+                current_base = alleles[mutation.position]
+                possible_mutations = [nuc for nuc in nucleotides if nuc != current_base]
+                alleles[mutation.position] = np.random.choice(possible_mutations)
+            genotype.append(alleles)
+        # Combine alleles into a single sequence for each individual
+        combined_sequence = np.array(genotype[0]) + np.array(genotype[1])
+        combined_snp_data.append(''.join(combined_sequence))
+
+    return np.array(combined_snp_data)
+
+# Parameters
 num_generations = 8
-mutation_rate = 1e-8  # Per base per generation mutation rate
-recombination_rate = 1e-8  # Per base per generation recombination rate
+pop_size = 100  # Effective population size
+num_individuals = 40  # Number of individuals to sample SNP data from
+num_loci = 50  # Number of loci
+mutation_rate = 1e-8  # Effective mutation rate per site per generation
 
-# Define a Wright-Fisher simulation
-params = mp.ModelParams(
-    nregions=[fwdpy11.Region(0, genome_length, 1.0)],
-    sregions=[],
-    recregions=[fwdpy11.Region(0, genome_length, recombination_rate)],
-    rates=(mutation_rate,),
-    deme_sizes=[pop_size] * num_generations,
-    num_generations=num_generations
-)
+# Run simulation
+snp_data = simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate)
 
-# Run the simulation
-pop = fwdpy11.DiploidPopulation(pop_size, genome_length)
-wf.wright_fisher(params, pop)
-
-# Extract SNP data
-tables = pop.dump_tables()
-positions = tables.sites.position  # SNP positions
-genotypes = tables.genotype_matrix()  # Genotype matrix
-
-# Function to convert genotype data to GenePop format
-def write_genepop(positions, genotypes, pop_size, output_file):
-    num_snps = len(positions)
-    with open(output_file, "w") as f:
-        # Write header information
-        f.write("SLiM Simulation Output\n")  # Title line
-        for pos in positions:
-            f.write(f"SNP_{int(pos)}\n")  # Loci positions
-
-        # Write population data
-        f.write("Pop\n")
-        for ind in range(pop_size):
-            f.write(f"Ind_{ind + 1}, ")
-            for snp in range(num_snps):
-                # Each genotype is composed of two alleles for diploid individuals
-                allele1 = genotypes[2 * ind, snp]
-                allele2 = genotypes[2 * ind + 1, snp]
-
-                # GenePop format requires a 2-digit representation of each allele
-                f.write(f"{allele1 + 1:02d}{allele2 + 1:02d} ")
-            f.write("\n")
-
-# Write the SNP data to a GenePop file
-output_file = "simulation_output.gen"
-write_genepop(positions, genotypes, pop_size, output_file)
-
-print(f"GenePop file saved as {output_file}")
+# Display SNP data
+print(snp_data)
