@@ -2,19 +2,27 @@ import fwdpy11 as fp11
 import numpy as np
 
 def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
-    # Create an initial population of diploid individuals
+    # Define the demography: constant population size over generations
+    demography = np.full(num_generations + 1, pop_size)
+
+    # Create the population
     population = fp11.DiploidPopulation(pop_size, num_loci)
 
-    # Define the parameters for the simulation
+    # Define the mutation rate per generation
+    theta = 4 * pop_size * mutation_rate
+
+    # Create a simulation parameter object
     params = fp11.ModelParams(
-        N=pop_size,
-        mu=mutation_rate * num_loci,  # Mutation rate adjusted for total loci
-        seed=np.random.randint(1, 100000),
-        demography=np.ones(num_generations + 1) * pop_size,  # Constant population size
+        nregions=[fp11.Region(0, num_loci, 1.0)],  # Entire chromosome can mutate
+        sregions=[],  # No selection regions
+        recregions=[],  # No recombination regions
+        rates=(mutation_rate, 0, 0),  # mutation rate, no recombination, no migration
+        demography=demography,
+        theta=theta
     )
 
     # Simulate the population over the specified generations
-    rng = fp11.GSLrng(params.seed)
+    rng = fp11.GSLrng(np.random.randint(1, 100000))
     fp11.wright_fisher(rng, population, params, num_generations)
 
     # Sample individuals for SNP data
@@ -31,9 +39,9 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
             alleles = np.random.choice(nucleotides, num_loci)  # Randomly assign nucleotides
             for mutation in chrom.mutations:
                 # Randomly pick a nucleotide different from the current one at the mutation position
-                current_base = alleles[mutation.position]
+                current_base = alleles[mutation.pos]
                 possible_mutations = [nuc for nuc in nucleotides if nuc != current_base]
-                alleles[mutation.position] = np.random.choice(possible_mutations)
+                alleles[mutation.pos] = np.random.choice(possible_mutations)
             genotype.append(alleles)
         # Combine alleles into a single sequence for each individual
         combined_sequence = np.array(genotype[0]) + np.array(genotype[1])
