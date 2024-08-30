@@ -5,21 +5,10 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
     # Create an initial population of diploid individuals
     population = fp11.DiploidPopulation(pop_size, num_loci)
 
-    # Define the mutation rate
-    mutation_rate_per_locus = mutation_rate / num_loci
-
-    # Define the mutation model using fwdpy11's mutation mechanism
-    mut_model = fp11.Mutation(
-        s=0.0,  # Assuming neutral mutations for simplicity
-        h=0.5,  # Heterozygosity (neutral for simplicity)
-        origin_type=fp11.MutationOriginType.random_mutation,
-        origin_prob=mutation_rate_per_locus
-    )
-
     # Define the parameters for the simulation
     params = fp11.ModelParams(
         N=pop_size,
-        mu=mutation_rate_per_locus,
+        mu=mutation_rate * num_loci,  # Mutation rate adjusted for total loci
         seed=np.random.randint(1, 100000),
         demography=np.ones(num_generations + 1) * pop_size,  # Constant population size
     )
