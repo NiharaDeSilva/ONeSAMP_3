@@ -2,14 +2,12 @@ import fwdpy11 as fp11
 import numpy as np
 
 def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
-    # Define the demography: constant population size over generations
-    demography = np.full(num_generations + 1, pop_size)
-
     # Create the population
     population = fp11.DiploidPopulation(pop_size, num_loci)
 
+    scaling = 1.0
     # Create a genetic value function (gvalue) for the simulation
-    gvalue = fp11.DiploidGeneticValue()
+    gvalue = fp11.DiploidGeneticValue(scaling)
 
     # Create a simulation parameter object
     params = fp11.ModelParams(
@@ -17,7 +15,7 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
         sregions=[],  # No selection regions
         recregions=[],  # No recombination regions
         rates=(mutation_rate, 0, 0),  # mutation rate, no recombination, no migration
-        demography=demography,
+        demography=None,
         gvalue=gvalue
     )
 
