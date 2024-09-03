@@ -1,23 +1,47 @@
 import fwdpy11 as fp11
 import numpy as np
+import demes
 
 def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
+    # Create the demographic model using the `demes` library
+    graph = demes.Graph(
+        description="Constant population size model",
+        time_units="generations"
+    )
+
+    # Add a Deme with a constant population size
+    graph.add_deme(
+        name="population",
+        start_time=num_generations,
+        epochs=[demes.Epoch(
+            start_size=pop_size,
+            end_size=pop_size,
+            start_time=num_generations,
+            end_time=0,
+            size_function="constant"
+        )]
+    )
+
+    # Convert the demes graph to a ForwardDemesGraph for fwdpy11
+    demography = fp11.ForwardDemesGraph(graph, burnin=1000, burnin_is_exact=False, round_non_integer_sizes=True)
+
     # Create the population
     population = fp11.DiploidPopulation(pop_size, num_loci)
 
-    # Create a mutation model with the mutation rate per generation
-    theta = 4 * pop_size * mutation_rate
-
     # Define the regions where mutations can occur
     nregions = [fp11.Region(0, num_loci, 1.0)]  # Entire chromosome can mutate
+
+    # Create a genetic value function (gvalue) with a scaling parameter
+    gvalue = fp11.Additive(1.0)  # Using an additive genetic value model with default scaling
 
     # Simulation parameter object
     params = fp11.ModelParams(
         nregions=nregions,  # Mutation regions
         sregions=[],  # No selection regions
         recregions=[],  # No recombination regions
-        rates=(mutation_rate, 0, 0),  # (mutation rate, recombination rate, migration rate)
-        theta=theta  # Mutation parameter
+        rates=(mutation_rate, 0.0, 0.0),  # (mutation rate, recombination rate, migration rate)
+        gvalue=gvalue,  # Specify the genetic value function
+        demography=demography  # Specify the ForwardDemesGraph object
     )
 
     # Simulate the population over the specified generations
@@ -53,7 +77,7 @@ num_generations = 8  # Number of generations
 pop_size = 100  # Effective population size
 num_individuals = 10  # Number of individuals to sample SNP data from
 num_loci = 1000  # Number of loci
-mutation_rate = 1e-8  # Effective mutation rate per site per generation
+mutation_rate = 1e-8  # Mutation rate per site per generation
 
 # Run simulation
 snp_data = simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate)
