@@ -11,6 +11,8 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
             demes.Deme(
                 name="population",
                 start_time=num_generations,
+                ancestors=[],  # No ancestors since this is an isolated population
+                proportions=[],  # No proportions needed since there are no ancestors
                 epochs=[demes.Epoch(
                     start_size=pop_size,
                     end_size=pop_size,
