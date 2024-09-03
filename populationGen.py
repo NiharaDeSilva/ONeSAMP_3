@@ -6,20 +6,20 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
     # Create the demographic model using the `demes` library
     graph = demes.Graph(
         description="Constant population size model",
-        time_units="generations"
-    )
-
-    # Add a Deme with a constant population size
-    graph.add_deme(
-        name="population",
-        start_time=num_generations,
-        epochs=[demes.Epoch(
-            start_size=pop_size,
-            end_size=pop_size,
-            start_time=num_generations,
-            end_time=0,
-            size_function="constant"
-        )]
+        time_units="generations",
+        demes=[
+            demes.Deme(
+                name="population",
+                start_time=num_generations,
+                epochs=[demes.Epoch(
+                    start_size=pop_size,
+                    end_size=pop_size,
+                    start_time=num_generations,
+                    end_time=0,
+                    size_function="constant"
+                )]
+            )
+        ]
     )
 
     # Convert the demes graph to a ForwardDemesGraph for fwdpy11
