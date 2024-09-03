@@ -3,25 +3,23 @@ import numpy as np
 import demes
 
 def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
-    # Create the demographic model using the `demes` library
+    # Create a demographic model using the demes library
     graph = demes.Graph(
         description="Constant population size model",
-        time_units="generations",
-        demes=[
-            demes.Deme(
-                name="population",
-                start_time=num_generations,
-                ancestors=[],  # No ancestors since this is an isolated population
-                proportions=[],  # No proportions needed since there are no ancestors
-                epochs=[demes.Epoch(
-                    start_size=pop_size,
-                    end_size=pop_size,
-                    start_time=num_generations,
-                    end_time=0,
-                    size_function="constant"
-                )]
-            )
-        ]
+        time_units="generations"
+    )
+
+    # Add a Deme with a constant population size
+    graph.deme(
+        name="population",
+        start_time=num_generations,
+        epochs=[demes.Epoch(
+            start_size=pop_size,
+            end_size=pop_size,
+            start_time=num_generations,
+            end_time=0,
+            size_function="constant"
+        )]
     )
 
     # Convert the demes graph to a ForwardDemesGraph for fwdpy11
