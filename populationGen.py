@@ -4,7 +4,7 @@ import demes
 
 def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
     # Create the demographic model using the `demes` library
-    yaml="""
+    yaml = """
     description: An example demes model
     time_units: generations
     demes:
@@ -24,8 +24,11 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
         - start_size: 100
     """
 
+    # Parse the YAML string to create a demes.Graph object
+    graph = demes.loads(yaml)
+
     # Convert the demes graph to a ForwardDemesGraph for fwdpy11
-    demography = fp11.ForwardDemesGraph.from_demes(yaml, burnin=1000, burnin_is_exact=False, round_non_integer_sizes=True)
+    demography = fp11.ForwardDemesGraph.from_demes(graph, burnin=1000, burnin_is_exact=False, round_non_integer_sizes=True)
 
     # Create the population
     population = fp11.DiploidPopulation(pop_size, num_loci)
@@ -33,22 +36,19 @@ def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, muta
     # Define the regions where mutations can occur
     nregions = [fp11.Region(0, num_loci, 1.0)]  # Entire chromosome can mutate
 
-    # Create a genetic value function (gvalue) with a scaling parameter
-    gvalue = fp11.Additive(1.0)  # Using an additive genetic value model with default scaling
-
     # Simulation parameter object
     params = fp11.ModelParams(
-        nregions=nregions,  # Mutation regions
+        nregions=nregions,  # Mutation region
+        gvalue=fp11.Additive(1.0),  # Additive genetic value model
         sregions=[],  # No selection regions
         recregions=[],  # No recombination regions
-        rates=(mutation_rate, 0.0, 0.0),  # (mutation rate, recombination rate, migration rate)
-        gvalue=gvalue,  # Specify the genetic value function
+        rates=fp11.Rates(mutation_rate, 0.0, 0.0),  # (mutation rate, recombination rate, migration rate)
         demography=demography  # Specify the ForwardDemesGraph object
     )
 
     # Simulate the population over the specified generations
     rng = fp11.GSLrng(np.random.randint(1, 100000))
-    fp11.wright_fisher(rng, population, params, num_generations)
+    fp11.evolvets(rng, population, params, num_generations)
 
     # Sample individuals for SNP data
     sampled_individuals = population.sample(num_individuals)
