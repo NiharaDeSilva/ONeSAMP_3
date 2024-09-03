@@ -4,28 +4,28 @@ import demes
 
 def simulate_snp_data(num_generations, pop_size, num_individuals, num_loci, mutation_rate):
     # Create the demographic model using the `demes` library
-    graph = demes.Graph(
-        description="Constant population size model",
-        time_units="generations",
-        demes=[
-            demes.Deme(
-                name="population",
-                start_time=num_generations,
-                ancestors=[],  # No ancestors since this is an isolated population
-                proportions=[],  # No proportions needed since there are no ancestors
-                epochs=[demes.Epoch(
-                    start_size=pop_size,
-                    end_size=pop_size,
-                    start_time=num_generations,
-                    end_time=0,
-                    size_function="constant"
-                )]
-            )
-        ]
-    )
+    yaml="""
+    description: An example demes model
+    time_units: generations
+    demes:
+     - name: ancestor1
+       epochs:
+        - start_size: 100
+          end_time: 50
+     - name: ancestor2
+       epochs:
+        - start_size: 250
+          end_time: 50
+     - name: admixed
+       start_time: 50
+       ancestors: [ancestor1, ancestor2]
+       proportions: [0.90, 0.10]
+       epochs:
+        - start_size: 100
+    """
 
     # Convert the demes graph to a ForwardDemesGraph for fwdpy11
-    demography = fp11.ForwardDemesGraph(graph, burnin=1000, burnin_is_exact=False, round_non_integer_sizes=True)
+    demography = fp11.ForwardDemesGraph.from_demes(yaml, burnin=1000, burnin_is_exact=False, round_non_integer_sizes=True)
 
     # Create the population
     population = fp11.DiploidPopulation(pop_size, num_loci)
