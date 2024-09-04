@@ -35,18 +35,18 @@ fwdpy11.evolvets(rng, pop, params, simplification_interval=100)
 # Extract the SNP/mutation data from the population tables
 tables = pop.dump_tables()
 
-# Print SNP data: mutation position, derived state, and frequency
+# Access mutations and nodes (which represent genomes)
+mutations = tables.mutations
+nodes = tables.nodes
+
+# Print SNP data: mutation position and derived state
 print("SNP Data:")
-for mutation in tables.mutations:
-    print(f"Mutation ID: {mutation.id}, Position: {mutation.position}, Derived State: {mutation.derived_state}, Frequency: {mutation.freq}")
+for mutation in mutations:
+    print(f"Position: {mutation.position}, Derived State: {mutation.derived_state}")
 
-# Print individuals' genotypes (which mutations they carry)
+# Print node information (representing genomes/individuals)
 print("\nIndividuals' Genotypes:")
-for ind in tables.individuals:
-    print(f"Individual {ind.id} Genotypes: {ind.metadata}")
+for i, node in enumerate(nodes):
+    print(f"Node ID: {i}, Time: {node.time}, Flags: {node.flags}")
 
-# Print the mutation positions and alleles carried by individuals
-print("\nGenotypes by individual:")
-for h in tables.haplotypes:
-    print(f"Individual {h.individual} carries mutation {h.mutation}")
 
