@@ -1,42 +1,52 @@
 import fwdpy11
-import fwdpy11.model_params
-import fwdpy11.demography
+import fwdpy11.ModelParams
 import numpy as np
 
-# Define simulation parameters
-Ne = 1000  # Effective population size
-n_loci = 10  # Number of loci
-n_individuals = 50  # Number of individuals
+pop = fwdpy11.DiploidPopulation(500, 50)
 
-# Define the mutation rate and recombination rate
-mutation_rate = 1e-8
-recombination_rate = 1e-8
+rng = fwdpy11.GSLrng(54321)
 
-# Define demography
-demography = fwdpy11.demography.Demography([Ne] * 8)  # Constant population size over generations
-
-# Initialize population
-pop = fwdpy11.DiploidPopulation(Ne, n_loci)
-
-# Define model parameters
-params = fwdpy11.model_params.SlocusParams(
-    nregions=[],
-    sregions=[],
-    recregions=[fwdpy11.Region(0, n_loci, recombination_rate)],
-    rates=(mutation_rate, recombination_rate),
-    demography=demography,
+GSSmo = fwdpy11.GaussianStabilizingSelection.single_trait(
+    [
+        fwdpy11.Optimum(when=0, optimum=0.0, VS=1.0),
+        fwdpy11.Optimum(when=10 * pop.N - 200, optimum=1.0, VS=1.0),
+    ]
 )
 
-# Run simulation for 8 generations
-for generation in range(8):
-    fwdpy11.wright_fisher.Slocus(params, pop)
-    if generation >= 2:
-        # Extract information from generation 2 to 8
-        print(f"Generation {generation + 1}:")
-        print(f"Number of individuals: {pop.N}")
-        print(f"Genetic diversity: {np.mean(pop.sample_sfs())}")
-        # Additional processing can be done here
+rho = 1000.
 
-# Extract final population state
-final_state = pop.dump_tables()
-print(final_state)
+des = fwdpy11.GaussianS(beg=0, end=1, weight=1, sd=0.1,
+    h=fwdpy11.LargeEffectExponentiallyRecessive(k=5.0))
+
+p = {
+    "nregions": [],
+    "gvalue": fwdpy11.Additive(2.0, GSSmo),
+    "sregions": [des],
+    "recregions": [fwdpy11.PoissonInterval(0, 1., rho / float(4 * pop.N))],
+    "rates": (0.0, 1e-3, None),
+    "prune_selected": False,
+    "demography": fwdpy11.ForwardDemesGraph.tubes([pop.N], burnin=10),
+    "simlen": 10 * pop.N,
+}
+params = fwdpy11.ModelParams(**p)
+
+fwdpy11.evolvets(rng, pop, params, simplification_interval=100)
+
+# Extract the SNP/mutation data from the population tables
+tables = pop.dump_tables()
+
+# Print SNP data: mutation position, derived state, and frequency
+print("SNP Data:")
+for mutation in tables.mutations:
+    print(f"Mutation ID: {mutation.id}, Position: {mutation.position}, Derived State: {mutation.derived_state}, Frequency: {mutation.freq}")
+
+# Print individuals' genotypes (which mutations they carry)
+print("\nIndividuals' Genotypes:")
+for ind in tables.individuals:
+    print(f"Individual {ind.id} Genotypes: {ind.metadata}")
+
+# Print the mutation positions and alleles carried by individuals
+print("\nGenotypes by individual:")
+for h in tables.haplotypes:
+    print(f"Individual {h.individual} carries mutation {h.mutation}")
+
