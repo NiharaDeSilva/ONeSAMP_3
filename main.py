@@ -241,8 +241,8 @@ def processRandomPopulation(x):
     target_Ne = Ne_left + random_index * 2
     target_Ne = f"{target_Ne:05d}"
     cmd = "%s -u%.9f -v%s -rC -l%d -i%d -d%s -s -t1 -b%s -f%f -o1 -p > %s" % (POPULATION_GENERATOR, mutationRate, rangeTheta, loci, sampleSize, rangeDuration, target_Ne, minAlleleFreq, intermediateFile)
-    # simulate_populations = SimulatePopulations()
-    # simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
+    #simulate_populations = SimulatePopulations()
+    #simulate_populations.generate_population_data(sampleSize, loci, rangeNe, mutationRate, intermediateFile, duration_start, duration_range, missing_data_percentage)
 
     if (DEBUG):
         print(cmd)

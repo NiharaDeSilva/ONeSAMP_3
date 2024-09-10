@@ -11,15 +11,16 @@ NeVal=200
 numPOP="00256"
 
 
-outputSampleSizes=(50,200)
-locis=(40,320)
+outputSampleSizes=(50,100,200)
+locis=(40,80,160,320)
 simulate_populations = SimulatePopulations()
 
 for sampleSize in outputSampleSizes:
     for loci in locis:
-        for i in range(1, 31):
-            file_name = f"genePop{sampleSize}x{loci}_{i}"
-            path = os.path.join("/blue/boucher/yu.hong/ONeSAMP_reg/data_ms", file_name)
+        for i in range(1,2):
+            file_name = f"genePop{sampleSize}x{loci}"
+            #path = os.path.join("/blue/boucher/suhashidesilva/ONeSAMP_3.1/ONeSAMP_3/data/", file_name)
+            path = os.path.join("/Users/suhashidesilva/PycharmProjects/ONeSAMP_3.1/ONeSAMP_3/data/", file_name)
             print(path)
             simulate_populations.generate_input_population(sampleSize, loci, NeVal, mutationRate, path, duration_start, duration_range, missing_data_percentage)
 

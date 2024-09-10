@@ -76,8 +76,8 @@ class SimulatePopulations:
 
 
 
-# population = SimulatePopulations()
-# population.generate_population_data(50, 20, (4,400), 0.012, "genePop50x20")
+#population = SimulatePopulations()
+#population.generate_input_population(50, 20, (250), 0.012, "genePop50x20", 2, 6, 0.1)
 
 
 
