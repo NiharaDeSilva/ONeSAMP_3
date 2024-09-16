@@ -5,6 +5,16 @@ import random
 class SimulatePopulations:
 
     def simulate_populations(self, sample_size, loci, neRange,  rate, duration_start, duration_range, missing_data_percentage):
+        '''
+        Ne_left = lowerNe
+        Ne_right = upperNe
+        if Ne_left % 2 != 0:
+            Ne_left += 1
+        num_evens = (Ne_right - Ne_left) // 2 + 1
+        random_index = random.randint(0, num_evens - 1)
+        target_Ne = Ne_left + random_index * 2
+        target_Ne = f"{target_Ne:05d}"
+        '''
         if isinstance(neRange, tuple):
             effective_population = np.random.uniform(neRange[0],neRange[1])
         else:
